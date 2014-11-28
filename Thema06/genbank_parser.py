@@ -4,14 +4,17 @@ import re
 class GenBank:
 
     def __init__(self, file):
-        self.seq = None
+        self.seq = str()
         self.file = file
         self._read_file()
 
+    def __str__(self):
+        return self.seq
+
     def _read_file(self):
         handle = open(self.file, 'r')
-        for line in handle:
-            self.seq += line
+        var = handle.readlines()
+        self.seq = ''.join(var)
         handle.close()     
 
     def make_chromosome(self):
@@ -19,3 +22,5 @@ class GenBank:
 
     def make_genes(self):
         pass
+
+print(GenBank('chromosome_1.gb'))
