@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re
+import os
 
 
 class GenBank:
@@ -42,18 +43,19 @@ class GenBank:
             exon_regions = re.findall('.(\d*\.\.\d*)', cur_cds, re.DOTALL)
 
             for i, exon in enumerate(exon_regions):
-                exon_regions[i] =  exon.split('..')
+                exon_regions[i] = exon.split('..')
+
+            # TODO figure out a way to get the chromosome id
 
             gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds).group(1)
             protein_id = re.search('/protein_id="(.*)"', cur_cds).group(1)
             protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL).group(1).split(',')[0]
             protein_name = re.sub(' +', ' ', protein_name)
             protein_name = re.sub('\n|"', '', protein_name)
-            print(protein_name)
-            #
-            # print(strand)
-            # print(exon_regions)
 
+            gene_list.append(Gene(gene_id, strand, exon_regions, protein_name, protein_id))
+
+        return gene_list
 
 
 class Chromosome:
@@ -63,9 +65,29 @@ class Chromosome:
         self.seq = seq
         self.organism = organism
 
+    def make_fasta(self):
+        filename = 'chromosome' + str(self.chromosome_id) + '_' + str(self.organism)
+
+        if os.path.exists(filename):
+            print('file exists already')
+            # TODO build proper naming and path selection!
+
+        else:
+            file = open(filename,'w')
+            fasta_id = '>chromosome_' + str(self.chromosome_id) + '|' + str(self.organism) + '\n'
+            file.write(fasta_id)
+
+            seq_to_write= []
+            for i in range(0, len(self.seq), 75):
+                seq_to_write.append(self.seq[i:i+75])
+
+            file.write('\n'.join(seq_to_write))
+            file.close()
+
 
 class Gene:
-    def __init__(self, gene_id, chromosome_id, strand, exons, protein, protein_id):
+
+    def __init__(self, gene_id, strand, exons, protein, protein_id, chromosome_id=1):
         self.gene_id = gene_id
         self.chromosome_id = chromosome_id
         self.strand = strand
@@ -73,10 +95,55 @@ class Gene:
         self.protein = protein
         self.protein_id = protein_id
 
-genBank = GenBank('chromosome_1.gb')
 
-chromosome1 = genBank.make_chromosome()
-genBank.make_genes()
-# print(chromosome1.chromosome_id)
+def make_fasta_genes():
+    # TODO fix this so it works properly maybe move the method to the genbank object
+    filename = 'chromosome' + str(1) + '_' + str('Plasmodium falciparum strain 3D7') + '_genes'
+
+    if os.path.exists(filename):
+        print('file exists already')
+        # TODO build proper naming and path selection!
+
+    else:
+        file = open(filename, 'w')
+        # TODO make it so that the seqeunce is written to the file
+        for obj in GenBank('chromosome_1.gb').make_genes():
+            fasta_id = '>gene_' + str(obj.gene_id) + '|' + str(obj.strand) + '|' + str(obj.protein) + '\n'
+            file.write(fasta_id)
+
+            # seq_to_write = []
+            # for i in range(0, len(obj.seq), 75):
+            #     seq_to_write.append(obj.seq[i:i+75])
+            # file.write('\n'.join(seq_to_write))
+
+        file.close()
+
+
+def main():
+    genbank = GenBank('chromosome_1.gb')
+    chromosome1 = genbank.make_chromosome()
+    chromosome1.make_fasta()
+    make_fasta_genes()
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
+
+
+
+# for gene_obj in genBank.make_genes():
+#     print('------------------------------------')
+#     print(gene_obj.gene_id)
+#     print(gene_obj.strand)
+#     print(gene_obj.exons)
+#     print(gene_obj.protein)
+#     print(gene_obj.protein_id)
+#     print('------------------------------------')
+# # print(chromosome1.chromosome_id)
 # print(chromosome1.organism)
 # print(chromosome1.seq)
