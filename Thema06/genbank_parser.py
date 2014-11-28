@@ -31,6 +31,7 @@ class GenBank:
     def make_genes(self):
 
         cds_info = re.findall('CDS(.+?)/translation', self.seq, re.DOTALL)
+        gene_list = []
 
         for cur_cds in cds_info:
 
@@ -42,8 +43,16 @@ class GenBank:
 
             for i, exon in enumerate(exon_regions):
                 exon_regions[i] =  exon.split('..')
-            print(strand)
-            print(exon_regions)
+
+            gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds).group(1)
+            protein_id = re.search('/protein_id="(.*)"', cur_cds).group(1)
+            protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL).group(1).split(',')[0]
+            protein_name = re.sub(' +', ' ', protein_name)
+            protein_name = re.sub('\n|"', '', protein_name)
+            print(protein_name)
+            #
+            # print(strand)
+            # print(exon_regions)
 
 
 
