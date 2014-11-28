@@ -136,6 +136,7 @@ if __name__ == '__main__':
 
 
 
+
 # for gene_obj in genBank.make_genes():
 #     print('------------------------------------')
 #     print(gene_obj.gene_id)
