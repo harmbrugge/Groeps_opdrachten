@@ -29,7 +29,22 @@ class GenBank:
         return Chromosome(seq, chromosome_id, organism)
 
     def make_genes(self):
-        pass
+
+        cds_info = re.findall('CDS(.+?)/translation', self.seq, re.DOTALL)
+
+        for cur_cds in cds_info:
+
+            if re.match('.*complement', cur_cds):
+                strand = '+'
+            else:
+                strand = '-'
+            exon_regions = re.findall('.(\d*\.\.\d*)', cur_cds, re.DOTALL)
+
+            for i, exon in enumerate(exon_regions):
+                exon_regions[i] =  exon.split('..')
+            print(strand)
+            print(exon_regions)
+
 
 
 class Chromosome:
@@ -41,13 +56,18 @@ class Chromosome:
 
 
 class Gene:
-    def __init__(self, gene_id, chromosome_id, exons, protein, protein_id):
-
-        pass
+    def __init__(self, gene_id, chromosome_id, strand, exons, protein, protein_id):
+        self.gene_id = gene_id
+        self.chromosome_id = chromosome_id
+        self.strand = strand
+        self.exons = exons
+        self.protein = protein
+        self.protein_id = protein_id
 
 genBank = GenBank('chromosome_1.gb')
 
 chromosome1 = genBank.make_chromosome()
-print(chromosome1.chromosome_id)
-print(chromosome1.organism)
-print(chromosome1.seq)
+genBank.make_genes()
+# print(chromosome1.chromosome_id)
+# print(chromosome1.organism)
+# print(chromosome1.seq)
