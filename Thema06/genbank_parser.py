@@ -3,6 +3,7 @@ import re
 import os
 
 
+# TODO error/exception handeling!!
 class GenBank:
 
     def __init__(self, file):
@@ -30,7 +31,7 @@ class GenBank:
         chromosome_id = definition.group(2)
 
         seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
-        seq = re.sub('\n|\s|\d', '', seq)
+        seq = re.sub('\n|\s|\d', '', seq).lower()
 
         self.chromosome = Chromosome(seq, chromosome_id, organism)
 
@@ -71,7 +72,6 @@ class GenBank:
 
             elif strand == '+':
                 exon_seqs = ''.join(exon_seqs)
-
 
             gene_list.append(Gene(gene_id,
                                   strand,
@@ -151,21 +151,3 @@ class FastaHandler:
 
             file.write('\n'.join(seq_to_write))
             file.close()
-
-
-def main():
-
-    # /homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk
-    genbank = GenBank('/homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk')
-    chromosome1 = genbank.make_chromosome()
-    chromosome1.genes = genbank.make_genes()
-
-    print()
-
-    fasta_handler = FastaHandler()
-    fasta_handler.write_chromosome(chromosome1)
-    fasta_handler.write_genes(chromosome1.genes)
-
-
-if __name__ == '__main__':
-    main()
