@@ -1,22 +1,43 @@
+#!/usr/bin/env python3
 import genbank_parser
+import glob
+import os
 
 
-class
+class ParserHandler:
 
+    def __init__(self, input_folder, output_folder):
+        self.input_folder = input_folder
+        self.output_folder = output_folder
+        self.chromosome = None
+        self.genes = None
+        self.fasta_witer = None
 
+    def open_file(self):
 
+        for filename in glob.glob(os.path.join(self.input_folder, '*.gbk')):
+            self.genbank = genbank_parser.GenBank(filename)
+            self.fasta_witer = genbank_parser.FastaWriter()
+            self.create_chromosome_fasta()
+            self.create_genes_fasta()
+
+    def create_chromosome_fasta(self):
+
+        self.chromosome = self.genbank.make_chromosome()
+        self.fasta_witer.write_chromosome(self.chromosome, self.output_folder)
+
+    def create_genes_fasta(self):
+
+        self.genes = self.genbank.make_genes()
+        self.fasta_witer.write_genes(self.genes, self.output_folder)
 
 
 def main():
+    p = ParserHandler('/homes/obbakker/Dropbox/Thema6/plasmodium/', 'plasmodium/')
+    p.open_file()
+    p.create_chromosome_fasta()
+    p.create_genes_fasta()
 
-    # /homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk
-    genbank = genbank_parser.GenBank('/homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk')
-    chromosome1 = genbank.make_chromosome()
-    chromosome1.genes = genbank.make_genes()
-
-    fasta_handler = genbank_parser.FastaHandler()
-    fasta_handler.write_chromosome(chromosome1)
-    fasta_handler.write_genes(chromosome1.genes)
 
 
 if __name__ == '__main__':

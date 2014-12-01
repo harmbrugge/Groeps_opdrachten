@@ -26,14 +26,24 @@ class GenBank:
 
     def make_chromosome(self):
 
-        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w{1,2})', self.file_string)
-        organism = definition.group(1).replace(",", "")
-        chromosome_id = definition.group(2)
+        try:
+            # So the mt chromosome is picked up.
+            definition = re.search('DEFINITION\s*(.*)\s(mitochondrion)', self.file_string)
+            if definition:
+                definition = definition
+            else:
+                definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w*)', self.file_string)
 
-        seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
-        seq = re.sub('\n|\s|\d', '', seq).lower()
+            organism = definition.group(1).replace(",", "")
+            chromosome_id = definition.group(2)
 
-        self.chromosome = Chromosome(seq, chromosome_id, organism)
+            seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
+            seq = re.sub('\n|\s|\d', '', seq).lower()
+
+            self.chromosome = Chromosome(seq, chromosome_id, organism)
+
+        except AttributeError:
+            print('the styling of the file was not correct.')
 
         return self.chromosome
 
@@ -107,15 +117,16 @@ class Gene:
         self.protein_id = protein_id
 
 
-class FastaHandler:
+class FastaWriter:
 
+    # TODO create innit containing the path to output dir.
     @staticmethod
-    def write_genes(genes):
-        filename = 'chromosome' + genes[0].chromosome_id + '_' + genes[0].organism + '_genes'
+    def write_genes(genes, output_dir):
+        filename = output_dir + 'chromosome-' + genes[0].chromosome_id + '_' + genes[0].organism.replace(' ', '-') + '_genes'
 
         if os.path.exists(filename):
             print('file exists already')
-            # TODO build proper naming and path selection!
+            # TODO build proper naming and path selection! (kinda done)
 
         else:
             file = open(filename, 'w')
@@ -133,12 +144,12 @@ class FastaHandler:
             file.close()
 
     @staticmethod
-    def write_chromosome(chromosome):
-        filename = 'chromosome' + str(chromosome.chromosome_id) + '_' + str(chromosome.organism)
+    def write_chromosome(chromosome, output_dir):
+        filename = output_dir + 'chromosome_' + str(chromosome.chromosome_id) + '_' + str(chromosome.organism.replace(' ', '-'))
 
         if os.path.exists(filename):
             print('file exists already')
-            # TODO build proper naming and path selection!
+            # TODO build proper naming and path selection! (kinda done)
 
         else:
             file = open(filename, 'w')
