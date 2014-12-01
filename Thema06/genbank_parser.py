@@ -6,6 +6,7 @@ import os
 class GenBank:
 
     def __init__(self, file):
+
         self.file_string = str()
         self.file = file
         self._read_file()
@@ -16,14 +17,16 @@ class GenBank:
         return self.file_string
 
     def _read_file(self):
+
         handle = open(self.file, 'r')
         var = handle.readlines()
         self.file_string = ''.join(var)
         handle.close()     
 
     def make_chromosome(self):
-        definition = re.search('DEFINITION\s*(.*),?\schromosome\s(\d*|\w{1,2})', self.file_string)
-        organism = definition.group(1)
+
+        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w{1,2})', self.file_string)
+        organism = definition.group(1).replace(",", "")
         chromosome_id = definition.group(2)
 
         seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
@@ -36,34 +39,49 @@ class GenBank:
     def make_genes(self):
 
         cds_info = re.findall('CDS(.+?)/translation', self.file_string, re.DOTALL)
-        gene_list = []
+        trans_table = str.maketrans("atcg", "tagc")
+        gene_list = list()
+        strand = str()
 
         for cur_cds in cds_info:
 
-            if re.match('.*complement', cur_cds):
-                strand = '+'
-            else:
-                strand = '-'
+            exon_seqs = list()
             exon_regions = re.findall('.(\d*)\.\.>?(\d*)', cur_cds, re.DOTALL)
-
-            exon_seqs = dict()
-            for i, exon in enumerate(exon_regions):
-                gen_seq = self.chromosome.seq[int(exon[0]):int(exon[1])]
-                exon_seqs.update({exon[0]+'..'+exon[1]: gen_seq})
-
-
-
             gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds).group(1)
-
             protein_id = re.search('/protein_id="(.*)"', cur_cds).group(1)
             protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL).group(1).split(',')[0]
             protein_name = re.sub(' +', ' ', protein_name)
             protein_name = re.sub('\n|"', '', protein_name)
 
-            gene_list.append(Gene(gene_id, strand, exon_regions, exon_seqs, protein_name, protein_id,
-                                  self.chromosome))
-        self.genes = gene_list
+            for i, exon in enumerate(exon_regions):
 
+                if re.match('.*complement', cur_cds):
+                    strand = '-'
+                    gen_seq = self.chromosome.seq[int(exon[0]):int(exon[1])][::-1]
+                    gen_seq = gen_seq.translate(trans_table)
+                    exon_seqs.append(gen_seq)
+
+                else:
+                    strand = '+'
+                    gen_seq = self.chromosome.seq[int(exon[0])-1:int(exon[1])-1]
+                    exon_seqs.append(gen_seq)
+
+            if strand == '-':
+                exon_seqs = ''.join(exon_seqs[::-1])
+
+            elif strand == '+':
+                exon_seqs = ''.join(exon_seqs)
+
+
+            gene_list.append(Gene(gene_id,
+                                  strand,
+                                  exon_regions,
+                                  exon_seqs,
+                                  protein_name,
+                                  protein_id,
+                                  self.chromosome))
+
+        self.genes = gene_list
         return self.genes
 
 
@@ -91,10 +109,8 @@ class Gene:
 
 class FastaHandler:
 
-    def __init__(self):
-        pass
-
-    def write_genes(self, genes):
+    @staticmethod
+    def write_genes(genes):
         filename = 'chromosome' + genes[0].chromosome_id + '_' + genes[0].organism + '_genes'
 
         if os.path.exists(filename):
@@ -103,21 +119,21 @@ class FastaHandler:
 
         else:
             file = open(filename, 'w')
-            # TODO make it so that the seqeunce is written to the file
             for gene in genes:
+
                 fasta_id = '>gene_' + str(gene.gene_id) + '|' + str(gene.strand) + '|' + str(gene.protein) + '\n'
                 file.write(fasta_id)
+                gen_seq = gene.exon_seqs
+                seq_to_write = list()
 
-                gen_seq = ''.join([value for key, value in gene.exon_seqs.items()]) + '\n\n'
-
-                seq_to_write = []
                 for i in range(0, len(gen_seq), 75):
                     seq_to_write.append(gen_seq[i:i+75])
-                file.write('\n'.join(seq_to_write))
+                file.write('\n'.join(seq_to_write) + '\n\n')
 
             file.close()
 
-    def write_chromosome(self, chromosome):
+    @staticmethod
+    def write_chromosome(chromosome):
         filename = 'chromosome' + str(chromosome.chromosome_id) + '_' + str(chromosome.organism)
 
         if os.path.exists(filename):
@@ -138,9 +154,13 @@ class FastaHandler:
 
 
 def main():
-    genbank = GenBank('chromosome_1.gb')
+
+    # /homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk
+    genbank = GenBank('/homes/obbakker/Dropbox/Thema6/plasmodium/NC_000910.gbk')
     chromosome1 = genbank.make_chromosome()
     chromosome1.genes = genbank.make_genes()
+
+    print()
 
     fasta_handler = FastaHandler()
     fasta_handler.write_chromosome(chromosome1)
