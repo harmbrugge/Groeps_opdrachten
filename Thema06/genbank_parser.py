@@ -6,27 +6,27 @@ import os
 class GenBank:
 
     def __init__(self, file):
-        self.seq = str()
+        self.file_string = str()
         self.file = file
         self._read_file()
         self.chromosome = None
         self.genes = None
 
     def __str__(self):
-        return self.seq
+        return self.file_string
 
     def _read_file(self):
         handle = open(self.file, 'r')
         var = handle.readlines()
-        self.seq = ''.join(var)
+        self.file_string = ''.join(var)
         handle.close()     
 
     def make_chromosome(self):
-        definition = re.search('DEFINITION\s*(.*),\schromosome\s(\d|\w{1,2})', self.seq)
+        definition = re.search('DEFINITION\s*(.*),?\schromosome\s(\d*|\w{1,2})', self.file_string)
         organism = definition.group(1)
         chromosome_id = definition.group(2)
 
-        seq = re.search('ORIGIN(.*)//', self.seq, re.DOTALL).group(1)
+        seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
         seq = re.sub('\n|\s|\d', '', seq)
 
         self.chromosome = Chromosome(seq, chromosome_id, organism)
@@ -35,7 +35,7 @@ class GenBank:
 
     def make_genes(self):
 
-        cds_info = re.findall('CDS(.+?)/translation', self.seq, re.DOTALL)
+        cds_info = re.findall('CDS(.+?)/translation', self.file_string, re.DOTALL)
         gene_list = []
 
         for cur_cds in cds_info:
@@ -44,20 +44,26 @@ class GenBank:
                 strand = '+'
             else:
                 strand = '-'
-            exon_regions = re.findall('.(\d*\.\.\d*)', cur_cds, re.DOTALL)
+            exon_regions = re.findall('.(\d*)\.\.>?(\d*)', cur_cds, re.DOTALL)
 
+            exon_seqs = dict()
             for i, exon in enumerate(exon_regions):
-                exon_regions[i] = exon.split('..')
+                gen_seq = self.chromosome.seq[int(exon[0]):int(exon[1])]
+                exon_seqs.update({exon[0]+'..'+exon[1]: gen_seq})
+
+
 
             gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds).group(1)
+
             protein_id = re.search('/protein_id="(.*)"', cur_cds).group(1)
             protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL).group(1).split(',')[0]
             protein_name = re.sub(' +', ' ', protein_name)
             protein_name = re.sub('\n|"', '', protein_name)
 
-            gene_list.append(Gene(gene_id, strand, exon_regions, protein_name, protein_id,
+            gene_list.append(Gene(gene_id, strand, exon_regions, exon_seqs, protein_name, protein_id,
                                   self.chromosome))
         self.genes = gene_list
+
         return self.genes
 
 
@@ -72,12 +78,13 @@ class Chromosome:
 
 class Gene:
 
-    def __init__(self, gene_id, strand, exons, protein, protein_id, chromosome):
+    def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome):
         self.gene_id = gene_id
         self.chromosome_id = chromosome.chromosome_id
         self.organism = chromosome.organism
         self.strand = strand
-        self.exons = exons
+        self.exon_regions = exon_regions
+        self.exon_seqs = exon_seqs
         self.protein = protein
         self.protein_id = protein_id
 
@@ -101,10 +108,12 @@ class FastaHandler:
                 fasta_id = '>gene_' + str(gene.gene_id) + '|' + str(gene.strand) + '|' + str(gene.protein) + '\n'
                 file.write(fasta_id)
 
-                # seq_to_write = []
-                # for i in range(0, len(gene.seq), 75):
-                #     seq_to_write.append(gene.seq[i:i+75])
-                # file.write('\n'.join(seq_to_write))
+                gen_seq = ''.join([value for key, value in gene.exon_seqs.items()]) + '\n\n'
+
+                seq_to_write = []
+                for i in range(0, len(gen_seq), 75):
+                    seq_to_write.append(gen_seq[i:i+75])
+                file.write('\n'.join(seq_to_write))
 
             file.close()
 
