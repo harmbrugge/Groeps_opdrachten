@@ -125,7 +125,7 @@ class FastaWriter:
         filename = output_dir + 'chromosome-' + genes[0].chromosome_id + '_' + genes[0].organism.replace(' ', '-') + '_genes'
 
         if os.path.exists(filename):
-            print('file exists already')
+            print('Fasta file', filename, 'exists already')
             # TODO build proper naming and path selection! (kinda done)
 
         else:
@@ -148,7 +148,7 @@ class FastaWriter:
         filename = output_dir + 'chromosome_' + str(chromosome.chromosome_id) + '_' + str(chromosome.organism.replace(' ', '-'))
 
         if os.path.exists(filename):
-            print('file exists already')
+            print('Chromosome', filename, 'file exists already')
             # TODO build proper naming and path selection! (kinda done)
 
         else:
