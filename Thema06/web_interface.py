@@ -1,9 +1,10 @@
 #!/usr/bin/python3
 import genbank_parser
 import website
-import os
 import cgi
 import cgitb
+import tarfile
+
 
 
 def main():
@@ -21,15 +22,17 @@ def main():
 
     print(html.get_header("GenBank parser"))
 
-    message = 'Nog niks gedaan'
-
     if 'file' in form.keys():
-        # Test if the file was uploaded
-        if form['file'].filename:
-            # strip leading path from file name to avoid directory traversal attacks
-            fn = os.path.basename(form['file'].filename)
+        filefield = form['file']
 
-            file = form['file'].file.read()
+        if not isinstance(filefield, list):
+            filefield = [filefield]
+
+        file_list = list()
+
+        for fileitem in filefield:
+            # strip leading path from file name to avoid directory traversal attacks
+            file = fileitem.file.read()
             file = file.decode("utf-8")
 
             genbank = genbank_parser.GenBank(file)
@@ -38,27 +41,24 @@ def main():
 
             output_file = genbank_parser.FastaWriter.write_chromosome(chromosome, "file/")
 
-            print('<script>')
-            print('window.open("' + output_file + '");')
-            print('</script>')
+            file_list.append(output_file)
 
-            # file = open('file/' + fn, 'wb')
-            # file.write(form['file'].file.read())
+            # print('<script>')
+            # print('window.open("' + output_file + '");')
+            # print('</script>')
 
-
-
-        else:
-            message = 'Upload error'
-
+        tar = tarfile.open("sample.tar.gz", "w:gz")
+        for x in file_list:
+            tar.add(x)
+        tar.close()
 
 
     print('<form enctype="multipart/form-data" action=web_interface.py method="post">')
-    print('<p>File: <input type="file" name="file"></p>')
+    print('<p>File: <input type="file" name="file" multiple=""></p>')
     print('<p><input type="submit" value="Upload"></p>')
     print('</form>')
 
     # test
-    print(message)
     # End with footer
     print(html.get_footer())
 
