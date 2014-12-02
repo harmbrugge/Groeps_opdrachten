@@ -20,10 +20,14 @@ class GenBank:
         genes:              A list of gene objects for the chromosome
         :param file:        The path + filename for the genbank file one wishes to excecute.
         """
-
         self.file_string = str()
-        self.file = file
-        self._read_file()
+
+        if type(file) == str:
+            self.file_string = file
+        else:
+            self.file = file
+            self._read_file()
+
         self.chromosome = None
         self.genes = None
 
@@ -176,7 +180,8 @@ class FastaWriter:
         filename = output_dir + 'chromosome-' \
                               + genes[0].chromosome_id \
                               + '_' + genes[0].organism.replace(' ', '-')\
-                              + '_genes'
+                              + '_genes' \
+                              + '.fa'
 
         if os.path.exists(filename):
             print('Fasta file', filename, 'exists already')
@@ -204,6 +209,8 @@ class FastaWriter:
 
             file.close()
 
+        return filename
+
     @staticmethod
     def write_chromosome(chromosome, output_dir):
 
@@ -211,7 +218,7 @@ class FastaWriter:
         filename = output_dir \
                 + 'chromosome_' \
                 + str(chromosome.chromosome_id) \
-                + '_' + str(chromosome.organism.replace(' ', '-'))
+                + '_' + str(chromosome.organism.replace(' ', '-')) + '.fa'
 
         # Check if the file exists
         if os.path.exists(filename):
@@ -232,3 +239,5 @@ class FastaWriter:
 
             file.write('\n'.join(seq_to_write))
             file.close()
+
+        return filename
