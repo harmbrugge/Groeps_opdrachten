@@ -6,7 +6,6 @@ import cgitb
 import tarfile
 
 
-
 def main():
     cgitb.enable()
 
@@ -43,15 +42,16 @@ def main():
 
             file_list.append(output_file)
 
-            # print('<script>')
-            # print('window.open("' + output_file + '");')
-            # print('</script>')
+        output_filename = 'file/output.tar.gz'
 
-        tar = tarfile.open("sample.tar.gz", "w:gz")
+        tar = tarfile.open(output_filename, "w:gz")
         for x in file_list:
             tar.add(x)
         tar.close()
 
+        print('<script>')
+        print('window.open("' + output_filename + '");')
+        print('</script>')
 
     print('<form enctype="multipart/form-data" action=web_interface.py method="post">')
     print('<p>File: <input type="file" name="file" multiple=""></p>')
