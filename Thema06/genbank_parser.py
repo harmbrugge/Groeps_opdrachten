@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 import re
 import os
-import io
 
 
 # TODO error/exception handeling!!
@@ -171,7 +170,7 @@ class FastaWriter:
     """
 
     @staticmethod
-    def make_fasta_genes(genes):
+    def get_gene_string(genes):
         """
         This method creates the gene fasta file
         :param genes: A list of Gene objects
@@ -179,12 +178,11 @@ class FastaWriter:
         """
 
         # The creation of the filename .
+        file_string = str()
         filename = 'chromosome-' \
                    + genes[0].chromosome_id \
                    + '_' + genes[0].organism.replace(' ', '-')\
                    + '_genes'
-
-        temp_file = tempfile.NamedTemporaryFile(encoding='utf-8', newline='\n', prefix=filename, suffix=".fa")
 
         for gene in genes:
 
@@ -194,20 +192,19 @@ class FastaWriter:
                        + '|' + str(gene.strand) \
                        + '|' + str(gene.protein) + '\n'
 
-            temp_file.write(fasta_id)
             gen_seq = gene.exon_seqs
             seq_to_write = list()
 
             # Add a newline char every 75 chars
             for i in range(0, len(gen_seq), 75):
                 seq_to_write.append(gen_seq[i:i+75])
-            temp_file.write('\n'.join(seq_to_write) + '\n\n')
+            file_string = fasta_id + '\n'.join(seq_to_write) + '\n\n'
 
-        return temp_file
+        return [filename, file_string]
 
 
     @staticmethod
-    def make_fasta_chromosome(chromosome):
+    def get_chromosome_string(chromosome):
 
         filename = 'chromosome_' \
                    + str(chromosome.chromosome_id) \
@@ -226,7 +223,7 @@ class FastaWriter:
         return [file_string, filename]
 
     @staticmethod
-    def write_genes(genes, output_dir):
+    def write_genes(gene_string, output_dir):
         """
         This method creates the gene fasta file
         :param genes: A list of Gene objects
@@ -241,34 +238,17 @@ class FastaWriter:
 
         if os.path.exists(filename):
             print('Fasta file', filename, 'exists already')
-            # TODO build proper naming and path selection! (kinda done)
 
         else:
             # Open the file.
             file = open(filename, 'w')
-            for gene in genes:
-
-                # Creation of the fasta id.
-                fasta_id = '>gene_' \
-                           + str(gene.gene_id) \
-                           + '|' + str(gene.strand) \
-                           + '|' + str(gene.protein) + '\n'
-
-                file.write(fasta_id)
-                gen_seq = gene.exon_seqs
-                seq_to_write = list()
-
-                # Add a newline char every 75 chars
-                for i in range(0, len(gen_seq), 75):
-                    seq_to_write.append(gen_seq[i:i+75])
-                file.write('\n'.join(seq_to_write) + '\n\n')
-
+            file.write(gene_string)
             file.close()
 
         return filename
 
     @staticmethod
-    def write_chromosome(chromosome, output_dir):
+    def write_chromosome(chromosome_string, output_dir):
 
         # The creation of the filename .
         filename = output_dir \
@@ -279,21 +259,11 @@ class FastaWriter:
         # Check if the file exists
         if os.path.exists(filename):
             print('Chromosome', filename, 'file exists already')
-            # TODO build proper naming and path selection! (kinda done)
 
         else:
+
             file = open(filename, 'w')
-
-            # Creation of the fasta id.
-            fasta_id = '>chromosome_' + str(chromosome.chromosome_id) + '|' + str(chromosome.organism) + '\n'
-            file.write(fasta_id)
-
-            # Add a newline char every 75 chars
-            seq_to_write = []
-            for i in range(0, len(chromosome.seq), 75):
-                seq_to_write.append(chromosome.seq[i:i+75])
-
-            file.write('\n'.join(seq_to_write))
+            file.write(chromosome_string)
             file.close()
 
         return filename

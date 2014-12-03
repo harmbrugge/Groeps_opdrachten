@@ -9,6 +9,7 @@ class ParserHandler:
     def __init__(self, input_folder, output_folder):
         self.input_folder = input_folder
         self.output_folder = output_folder
+        self.genbank = None
         self.chromosome = None
         self.genes = None
         self.fasta_witer = None
@@ -23,12 +24,12 @@ class ParserHandler:
 
     def create_chromosome_fasta(self):
 
-        self.chromosome = self.genbank.make_chromosome()
+        self.chromosome = self.fasta_witer.get_chromosome_string(self.genbank.make_chromosome())
         self.fasta_witer.write_chromosome(self.chromosome, self.output_folder)
 
     def create_genes_fasta(self):
 
-        self.genes = self.genbank.make_genes()
+        self.genes = self.fasta_witer.get_gene_string(self.genbank.make_genes())
         self.fasta_witer.write_genes(self.genes, self.output_folder)
 
 
