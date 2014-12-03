@@ -44,7 +44,7 @@ class TarFile:
                 tar.addfile(tarinfo, io.BytesIO(x[0].encode('utf8')))
             tar.close()
 
-            return '<script>window.open("' + output_filename + '");</script>'
+            print('<script>window.open("' + output_filename + '");</script>')
 
 
 def main():
@@ -61,11 +61,12 @@ def main():
     print()
 
     print(html.get_header("GenBank parser"))
-    print(TarFile.get_tarfile(form))
+    TarFile.get_tarfile(form)
 
-    print('<form enctype="multipart/form-data" action=web_interface.py method="post">')
-    print('<p>File: <input type="file" name="file" multiple=""></p>')
-    print('<p><input type="submit" value="Upload"></p>')
+    print('<form role="form" enctype="multipart/form-data" action=web_interface.py method="post">')
+    print('<div class="form-group"><label for="file">File: </label>'
+          '<input id="file" type="file" name="file" multiple=""></div>')
+    print('<button class="btn btn-default" type="submit" value="Upload">Submit</button>')
     print('</form>')
 
     # End with footer

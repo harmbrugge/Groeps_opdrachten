@@ -178,7 +178,7 @@ class FastaWriter:
         """
 
         # The creation of the filename .
-        file_string = str()
+        gene_list = list()
         filename = 'chromosome-' \
                    + genes[0].chromosome_id \
                    + '_' + genes[0].organism.replace(' ', '-')\
@@ -187,21 +187,20 @@ class FastaWriter:
         for gene in genes:
 
             # Creation of the fasta id.
-            fasta_id = '>gene_' \
-                       + str(gene.gene_id) \
-                       + '|' + str(gene.strand) \
-                       + '|' + str(gene.protein) + '\n'
-
             gen_seq = gene.exon_seqs
             seq_to_write = list()
 
-            # Add a newline char every 75 chars
+            seq_to_write.append('>gene_'
+                                + str(gene.gene_id)
+                                + '|' + str(gene.strand)
+                                + '|' + str(gene.protein) + '\n')
+
             for i in range(0, len(gen_seq), 75):
-                seq_to_write.append(gen_seq[i:i+75])
-            file_string = fasta_id + '\n'.join(seq_to_write) + '\n\n'
+                seq_to_write.append(gen_seq[i:i+75] + '\n')
 
-        return [filename, file_string]
+            gene_list.append(''.join(seq_to_write) + '\n\n')
 
+        return [''.join(gene_list), filename]
 
     @staticmethod
     def get_chromosome_string(chromosome):
@@ -253,8 +252,8 @@ class FastaWriter:
         # The creation of the filename .
         filename = output_dir \
                 + 'chromosome_' \
-                + str(chromosome.chromosome_id) \
-                + '_' + str(chromosome.organism.replace(' ', '-')) + '.fa'
+                + str(chromosome_string.chromosome_id) \
+                + '_' + str(chromosome_string.organism.replace(' ', '-')) + '.fa'
 
         # Check if the file exists
         if os.path.exists(filename):
