@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import os
+import tempfile
 
 
 # TODO error/exception handeling!!
@@ -176,15 +177,14 @@ class FastaWriter:
         :param genes: A list of Gene objects
         :param output_dir: The path of the output dir
         """
+
         # The creation of the filename .
         filename = 'chromosome-' \
                    + genes[0].chromosome_id \
                    + '_' + genes[0].organism.replace(' ', '-')\
-                   + '_genes' \
-                   + '.fa'
+                   + '_genes'
 
-        # Open the file.
-        fasta = file.write
+        temp_file = tempfile.NamedTemporaryFile(encoding='utf-8', newline='\n', prefix=filename, suffix=".fa")
 
         for gene in genes:
 
@@ -194,18 +194,41 @@ class FastaWriter:
                        + '|' + str(gene.strand) \
                        + '|' + str(gene.protein) + '\n'
 
-            file.write(fasta_id)
+            temp_file.write(fasta_id)
             gen_seq = gene.exon_seqs
             seq_to_write = list()
 
             # Add a newline char every 75 chars
             for i in range(0, len(gen_seq), 75):
                 seq_to_write.append(gen_seq[i:i+75])
-            file.write('\n'.join(seq_to_write) + '\n\n')
+            temp_file.write('\n'.join(seq_to_write) + '\n\n')
 
-        file.close()
+        return temp_file
 
-        return None
+
+    @staticmethod
+    def write_chromosome(chromosome, output_dir):
+
+        # The creation of the filename .
+        filename = output_dir \
+                + 'chromosome_' \
+                + str(chromosome.chromosome_id) \
+                + '_' + str(chromosome.organism.replace(' ', '-'))
+
+        temp_file = tempfile.NamedTemporaryFile(encoding='utf-8', newline='\n', prefix=filename, suffix=".fa")
+
+        # Creation of the fasta id.
+        fasta_id = '>chromosome_' + str(chromosome.chromosome_id) + '|' + str(chromosome.organism) + '\n'
+        temp_file.write(fasta_id)
+
+        # Add a newline char every 75 chars
+        seq_to_write = []
+        for i in range(0, len(chromosome.seq), 75):
+            seq_to_write.append(chromosome.seq[i:i+75])
+
+        temp_file.write('\n'.join(seq_to_write))
+
+        return temp_file
 
     @staticmethod
     def write_genes(genes, output_dir):
