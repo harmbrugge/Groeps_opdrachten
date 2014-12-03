@@ -4,6 +4,7 @@ import website
 import cgi
 import cgitb
 import tarfile
+import io
 
 
 def main():
@@ -37,15 +38,17 @@ def main():
             chromosome = genbank.make_chromosome()
             chromosome.genes = genbank.make_genes()
 
-            output_file = genbank_parser.FastaWriter.write_chromosome(chromosome, "file/")
+            file_info = genbank_parser.FastaWriter.make_fasta_chromosome(chromosome)
 
-            file_list.append(output_file)
+            file_list.append(file_info)
 
         output_filename = 'file/output.tar.gz'
 
         tar = tarfile.open(output_filename, "w:gz")
         for x in file_list:
-            tar.add(x)
+            tarinfo = tarfile.TarInfo(x[1])
+            tarinfo.size = len(x[0])
+            tar.addfile(tarinfo, io.BytesIO(x[0].encode('utf8')))
         tar.close()
 
         print('<script>')

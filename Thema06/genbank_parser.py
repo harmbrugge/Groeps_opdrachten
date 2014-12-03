@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re
 import os
-import tempfile
+import io
 
 
 # TODO error/exception handeling!!
@@ -120,7 +120,7 @@ class GenBank:
                 exon_seqs = ''.join(exon_seqs[::-1])  # If the strand is negative it needs to be joined in reverse
 
             elif strand == '+':
-                exon_seqs = ''.join(exon_seqs) # Join the strands normally
+                exon_seqs = ''.join(exon_seqs)  # Join the strands normally
 
             # Creation of the gene objects.
             gene_list.append(Gene(gene_id,
@@ -207,28 +207,23 @@ class FastaWriter:
 
 
     @staticmethod
-    def write_chromosome(chromosome, output_dir):
+    def make_fasta_chromosome(chromosome):
 
-        # The creation of the filename .
-        filename = output_dir \
-                + 'chromosome_' \
-                + str(chromosome.chromosome_id) \
-                + '_' + str(chromosome.organism.replace(' ', '-'))
-
-        temp_file = tempfile.NamedTemporaryFile(encoding='utf-8', newline='\n', prefix=filename, suffix=".fa")
+        filename = 'chromosome_' \
+                   + str(chromosome.chromosome_id) \
+                   + '_' + str(chromosome.organism.replace(' ', '-'))
 
         # Creation of the fasta id.
         fasta_id = '>chromosome_' + str(chromosome.chromosome_id) + '|' + str(chromosome.organism) + '\n'
-        temp_file.write(fasta_id)
 
         # Add a newline char every 75 chars
         seq_to_write = []
         for i in range(0, len(chromosome.seq), 75):
             seq_to_write.append(chromosome.seq[i:i+75])
 
-        temp_file.write('\n'.join(seq_to_write))
+        file_string = fasta_id + '\n'.join(seq_to_write)
 
-        return temp_file
+        return [file_string, filename]
 
     @staticmethod
     def write_genes(genes, output_dir):
