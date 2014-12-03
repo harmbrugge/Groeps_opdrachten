@@ -30,7 +30,6 @@ def main():
         file_list = list()
 
         for fileitem in filefield:
-            # strip leading path from file name to avoid directory traversal attacks
             file = fileitem.file.read()
             file = file.decode("utf-8")
 

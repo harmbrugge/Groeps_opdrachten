@@ -170,6 +170,44 @@ class FastaWriter:
     """
 
     @staticmethod
+    def make_fasta_genes(genes):
+        """
+        This method creates the gene fasta file
+        :param genes: A list of Gene objects
+        :param output_dir: The path of the output dir
+        """
+        # The creation of the filename .
+        filename = 'chromosome-' \
+                   + genes[0].chromosome_id \
+                   + '_' + genes[0].organism.replace(' ', '-')\
+                   + '_genes' \
+                   + '.fa'
+
+        # Open the file.
+        fasta = file.write
+
+        for gene in genes:
+
+            # Creation of the fasta id.
+            fasta_id = '>gene_' \
+                       + str(gene.gene_id) \
+                       + '|' + str(gene.strand) \
+                       + '|' + str(gene.protein) + '\n'
+
+            file.write(fasta_id)
+            gen_seq = gene.exon_seqs
+            seq_to_write = list()
+
+            # Add a newline char every 75 chars
+            for i in range(0, len(gen_seq), 75):
+                seq_to_write.append(gen_seq[i:i+75])
+            file.write('\n'.join(seq_to_write) + '\n\n')
+
+        file.close()
+
+        return None
+
+    @staticmethod
     def write_genes(genes, output_dir):
         """
         This method creates the gene fasta file
