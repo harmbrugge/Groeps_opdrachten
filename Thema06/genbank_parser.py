@@ -23,9 +23,10 @@ class GenBank:
         """
         self.file_string = str()
 
-        if not content:
+        if content is not None:
             self.file_string = content
-        elif not filename:
+            self.filename = filename
+        elif filename is not None:
             self.file = filename
             self._read_file()
 
@@ -56,7 +57,7 @@ class GenBank:
         """
 
         # The regex code that searches for the chromosome.
-        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w*)', self.file_string)
+        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d+)', self.file_string)
 
         if definition:
             definition = definition
@@ -65,16 +66,19 @@ class GenBank:
             definition = re.search('DEFINITION\s*(.*)\s(mitochondrion)', self.file_string)
 
             if not definition:
-                raise exceptions.ParseException('No "DEFINITION" found in the genbank file:')
+                raise exceptions.ParseException('No, or invalid "DEFINITION" found in the genbank file: ' +
+                                                self.filename)
 
-        try:
-            organism = definition.group(1).replace(",", "")
-            chromosome_id = definition.group(2)
+        organism = definition.group(1).replace(",", "")
+        chromosome_id = definition.group(2)
 
-        except exceptions.ParseException:
-            raise exceptions.ParseException('Invalid "DEFINITION"')
+        seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL)
 
-        seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
+        if seq is None:
+            raise exceptions.ParseException('No sequence found in the genbank file: ' + self.filename)
+
+        seq = seq.group(1)
+
         seq = re.sub('\n|\s|\d', '', seq).lower()
 
         self.chromosome = Chromosome(seq, chromosome_id, organism)
@@ -89,6 +93,9 @@ class GenBank:
 
         # The regex to get all of the coding DNA seqeunces.
         cds_info = re.findall('CDS(.+?)/translation', self.file_string, re.DOTALL)
+        if len(cds_info) < 1:
+            raise exceptions.ParseException('No genes found in the genbank file: ' + self.filename)
+
         # Creates the dict for the creation of an reverse complement.
         trans_table = str.maketrans("atcg", "tagc")
         gene_list = list()
@@ -99,9 +106,16 @@ class GenBank:
             # The regex to get all of the info from an cds.
             exon_seqs = list()
             exon_regions = re.findall('.(\d*)\.\.>?(\d*)', cur_cds, re.DOTALL)
-            gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds).group(1)
-            protein_id = re.search('/protein_id="(.*)"', cur_cds).group(1)
-            protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL).group(1).split(',')[0]
+            gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds)
+            protein_id = re.search('/protein_id="(.*)"', cur_cds)
+            protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL)
+
+            if not all([exon_regions, gene_id, protein_id, protein_name]):
+                raise exceptions.ParseException('Invalid gene information in the genbank file: ' + self.filename)
+
+            gene_id = gene_id.group(1)
+            protein_id = protein_id.group(1)
+            protein_name = protein_name.group(1).split(',')[0]
             protein_name = re.sub(' +', ' ', protein_name)
             protein_name = re.sub('\n|"', '', protein_name)
 
@@ -227,18 +241,14 @@ class FastaWriter:
         return [file_string, filename]
 
     @staticmethod
-    def write_genes(gene_string, output_dir):
+    def write_genes(gene_string, output_dir='file/'):
         """
         This method creates the gene fasta file
         :param genes: A list of Gene objects
         :param output_dir: The path of the output dir
         """
         # The creation of the filename .
-        filename = output_dir + 'chromosome-' \
-                              + genes[0].chromosome_id \
-                              + '_' + genes[0].organism.replace(' ', '-')\
-                              + '_genes' \
-                              + '.fa'
+        filename = output_dir + gene_string[1]
 
         if os.path.exists(filename):
             print('Fasta file', filename, 'exists already')
@@ -246,28 +256,23 @@ class FastaWriter:
         else:
             # Open the file.
             file = open(filename, 'w')
-            file.write(gene_string)
+            file.write(gene_string[0])
             file.close()
 
         return filename
 
     @staticmethod
-    def write_chromosome(chromosome_string, output_dir):
-
+    def write_chromosome(chromosome_string, output_dir='file/'):
         # The creation of the filename .
-        filename = output_dir \
-                + 'chromosome_' \
-                + str(chromosome_string.chromosome_id) \
-                + '_' + str(chromosome_string.organism.replace(' ', '-')) + '.fa'
+        filename = output_dir + chromosome_string[1]
 
         # Check if the file exists
         if os.path.exists(filename):
             print('Chromosome', filename, 'file exists already')
 
         else:
-
             file = open(filename, 'w')
-            file.write(chromosome_string)
+            file.write(chromosome_string[0])
             file.close()
 
         return filename
