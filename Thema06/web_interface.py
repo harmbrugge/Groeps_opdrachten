@@ -21,7 +21,7 @@ class TarFile:
             file = fileitem.file.read()
             file = file.decode("utf-8")
 
-            genbank = genbank_parser.GenBank(file)
+            genbank = genbank_parser.GenBank(content=file)
             chromosome = genbank.make_chromosome()
             chromosome.genes = genbank.make_genes()
             gene = genbank.make_genes()

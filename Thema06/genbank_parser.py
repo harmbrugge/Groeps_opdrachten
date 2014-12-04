@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import re
 import os
+import exceptions
 
 
 # TODO error/exception handeling!!
@@ -13,19 +14,19 @@ class GenBank:
     the code would more flexible this way.
     """
 
-    def __init__(self, file):
+    def __init__(self, content=None, filename=None):
         """
         file_string:        The string containing the entire genbank file.
         chromosome:         The chromosome object for the genbank file.
         genes:              A list of gene objects for the chromosome
-        :param file:        The path + filename for the genbank file one wishes to excecute.
+        :param content:        The path + filename for the genbank file one wishes to excecute.
         """
         self.file_string = str()
 
-        if type(file) == str:
-            self.file_string = file
-        else:
-            self.file = file
+        if not content:
+            self.file_string = content
+        elif not filename:
+            self.file = filename
             self._read_file()
 
         self.chromosome = None
@@ -44,7 +45,7 @@ class GenBank:
         handle = open(self.file, 'r')
         var = handle.readlines()
         self.file_string = ''.join(var)
-        handle.close()     
+        handle.close()
 
     def make_chromosome(self):
         """
@@ -54,25 +55,29 @@ class GenBank:
         :return: A chromosome object.
         """
 
-        try:
-            # The regex code that searches for the mt chromosome.
-            definition = re.search('DEFINITION\s*(.*)\s(mitochondrion)', self.file_string)
-            if definition:
-                definition = definition
-            else:
-                # If no mitochondrion is present.
-                definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w*)', self.file_string)
+        # The regex code that searches for the chromosome.
+        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d*|\w*)', self.file_string)
 
+        if definition:
+            definition = definition
+        else:
+            # If  mitochondrion is present.
+            definition = re.search('DEFINITION\s*(.*)\s(mitochondrion)', self.file_string)
+
+            if not definition:
+                raise exceptions.ParseException('No "DEFINITION" found in the genbank file:')
+
+        try:
             organism = definition.group(1).replace(",", "")
             chromosome_id = definition.group(2)
 
-            seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
-            seq = re.sub('\n|\s|\d', '', seq).lower()
+        except exceptions.ParseException:
+            raise exceptions.ParseException('Invalid "DEFINITION"')
 
-            self.chromosome = Chromosome(seq, chromosome_id, organism)
+        seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL).group(1)
+        seq = re.sub('\n|\s|\d', '', seq).lower()
 
-        except AttributeError:
-            print('the styling of the file was not correct.')
+        self.chromosome = Chromosome(seq, chromosome_id, organism)
 
         return self.chromosome
 

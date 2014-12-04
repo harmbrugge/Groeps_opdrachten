@@ -54,6 +54,7 @@ class MainPage():
                      '<link href="../../../Resources/css/bootstrap.min.css" rel="stylesheet">'
                      '<!-- Custom CSS -->'
                      '<link href="../../../Resources/css/simple-sidebar.css" rel="stylesheet">'
+                     '<script type="text/javascript" src="../resources/js/bootbox.min.js"></script>'
                      '<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>'
                      '<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>'
                      '</head>')
@@ -284,14 +285,13 @@ class DialogBox():
 
     def alert_box(self):
 
-
         self.dialog_box_html += ('<div class="modal fade" id ='+str(self.dialog_name)+' role = "dialog">'
                                  '<div class="modal-dialog">'
                                  '<div class="modal-content">'
                                  '<div class="modal-body"><p>'
                                  '<div class="alert alert-danger">'
                                  + '<h4>' + str(self.dialog_title)
-                                 + str(self.content)  +
+                                 + str(self.content) +
                                  '<button type="button" class="close" data-dismiss="modal">&times;</button>' + '</h4>'
                                  '</div>'
                                  '</p></div>'
