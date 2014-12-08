@@ -4,7 +4,6 @@ import os
 import exceptions
 
 
-# TODO error/exception handeling!!
 class GenBank:
     """
     This class handles the interactions pretaining to the genbank file.
@@ -193,7 +192,6 @@ class FastaWriter:
         """
         This method creates the gene fasta file
         :param genes: A list of Gene objects
-        :param output_dir: The path of the output dir
         """
 
         # The creation of the filename .
@@ -240,11 +238,12 @@ class FastaWriter:
 
         return [file_string, filename]
 
+    # TODO: Needs to be generalized into a write fasta function
     @staticmethod
     def write_genes(gene_string, output_dir='file/'):
         """
         This method creates the gene fasta file
-        :param genes: A list of Gene objects
+        :param gene_string: A string representation of a .fasta file
         :param output_dir: The path of the output dir
         """
         # The creation of the filename .

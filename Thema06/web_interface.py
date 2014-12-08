@@ -27,10 +27,9 @@ class TarFile:
             genbank = genbank_parser.GenBank(content=file, filename=fileitem.filename)
             chromosome = genbank.make_chromosome()
             chromosome.genes = genbank.make_genes()
-            gene = genbank.make_genes()
 
             chromosome_file = genbank_parser.FastaWriter.get_chromosome_string(chromosome)
-            gene_file = genbank_parser.FastaWriter.get_gene_string(gene)
+            gene_file = genbank_parser.FastaWriter.get_gene_string(chromosome.genes)
             file_list.append(chromosome_file)
             file_list.append(gene_file)
 
@@ -47,7 +46,7 @@ class TarFile:
 
 
 def main():
-    cgitb.enable()
+    # cgitb.enable()
 
     # Get url parameters
     form = cgi.FieldStorage()
