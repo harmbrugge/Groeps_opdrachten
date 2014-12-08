@@ -53,8 +53,8 @@ class Prober:
 
 class Probes:
 
-    def __init__(self, id, gene_id, chromosome_id, sequence):
-        self.id = id
+    def __init__(self, probe_id, gene_id, chromosome_id, sequence):
+        self.probe_id = probe_id
         self.gene_id = gene_id
         self.chromosome_id = chromosome_id
         self.sequence = sequence
