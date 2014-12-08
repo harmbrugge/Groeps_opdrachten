@@ -26,7 +26,7 @@ class Prober:
                 if not re.search(repeat_di_nuc, cur_probe):
                     # Pak alleen het gebied van 5 + 3(gap)
                     hairpin_domain = cur_probe[8:]
-
+                    hairpin_bool = False
                     # Pak alle mogelijke sequenties van 5 in hairpin_domain
                     for y in range(0, len(hairpin_domain)-5):
                         hairpin_seq = hairpin_domain[y:y+5]
@@ -38,11 +38,18 @@ class Prober:
                         # Zoek op de probe naar de sequentie rekening houdens met eindlocatie
                         hairpin_seq_pos = cur_probe.find(hairpin_seq_rev_com, 0, 5+y)
                         if hairpin_seq_pos != -1:
-                            print(cur_probe_id)
-                            print(cur_probe)
-                            print(hairpin_seq_rev_com)
-                            print()
-                            print('--------------')
+                            hairpin_bool = True
+                            # print(cur_probe_id)
+                            # print(cur_probe)
+                            # print(hairpin_seq_rev_com)
+                            # print()
+                            # print('--------------')
+
+                    if hairpin_bool is False:
+                        self.probes.append(cur_probe)
+
+        print(len(self.probes))
+        print(self.probes)
 
 
 def main():
