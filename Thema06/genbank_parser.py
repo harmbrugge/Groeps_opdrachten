@@ -171,7 +171,7 @@ class Gene:
     data.
     """
 
-    def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome):
+    def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome, probes=None):
         self.gene_id = gene_id
         self.chromosome_id = chromosome.chromosome_id
         self.organism = chromosome.organism
@@ -180,6 +180,7 @@ class Gene:
         self.exon_seqs = exon_seqs
         self.protein = protein
         self.protein_id = protein_id
+        self.probes = probes
 
 
 class FastaWriter:
@@ -238,40 +239,49 @@ class FastaWriter:
 
         return [file_string, filename]
 
-    # TODO: Needs to be generalized into a write fasta function
     @staticmethod
-    def write_genes(gene_string, output_dir='file/'):
+    def get_probe_string(genes):
+
+        # The creation of the filename .
+        probe_list = list()
+        filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + genes[0].chromosome_id + '.fa'
+
+        for gene in genes:
+
+            seq_to_write = list()
+            for probe in gene.probes:
+
+                seq_to_write.append('>probe_'
+                                    + str(probe.probe_id)
+                                    + '|' + str(gene.strand)
+                                    + '|' + str(gene.protein)
+                                    + '|' + str(gene.gene_id)
+                                    + '\n')
+                seq_to_write.append(probe.sequence + '\n\n')
+
+            probe_list.append(''.join(seq_to_write))
+
+        return [''.join(probe_list), filename]
+
+
+    @staticmethod
+    def write(string, output_dir='file/'):
         """
         This method creates the gene fasta file
-        :param gene_string: A string representation of a .fasta file
+        :param string: A string representation of a .fasta file
         :param output_dir: The path of the output dir
         """
         # The creation of the filename .
-        filename = output_dir + gene_string[1]
+        filename = output_dir + string[1]
 
         if os.path.exists(filename):
-            print('Fasta file', filename, 'exists already')
+            print('File', filename, 'exists already')
 
         else:
             # Open the file.
             file = open(filename, 'w')
-            file.write(gene_string[0])
+            file.write(string[0])
             file.close()
 
         return filename
 
-    @staticmethod
-    def write_chromosome(chromosome_string, output_dir='file/'):
-        # The creation of the filename .
-        filename = output_dir + chromosome_string[1]
-
-        # Check if the file exists
-        if os.path.exists(filename):
-            print('Chromosome', filename, 'file exists already')
-
-        else:
-            file = open(filename, 'w')
-            file.write(chromosome_string[0])
-            file.close()
-
-        return filename
