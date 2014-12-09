@@ -56,6 +56,7 @@ class Probes:
 
 def main():
 
+    gene_list = list()
     prober = Prober()
     for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
 
@@ -63,13 +64,18 @@ def main():
         chromosome = genbank.make_chromosome()
         chromosome.genes = genbank.make_genes()
 
-        for gene in chromosome.genes:
-            gene.probes = prober.make_probes(gene)
+        cur_gene_list = genbank_parser.FastaWriter.get_gene_string(chromosome.genes)
+        gene_list.append(cur_gene_list)
 
-        probe_list = genbank_parser.FastaWriter.get_probe_string(chromosome.genes)
-        genbank_parser.FastaWriter.write(probe_list)
+        # for gene in chromosome.genes:
+        #     gene.probes = prober.make_probes(gene)
+        #
+        # probe_list = genbank_parser.FastaWriter.get_probe_string(chromosome.genes)
+        # genbank_parser.FastaWriter.write(probe_list)
 
     print(prober.probe_count)
+
+    genbank_parser.FastaWriter.write_list(gene_list)
 
 if __name__ == '__main__':
     main()

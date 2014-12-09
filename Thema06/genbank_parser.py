@@ -263,7 +263,6 @@ class FastaWriter:
 
         return [''.join(probe_list), filename]
 
-
     @staticmethod
     def write(string, output_dir='file/'):
         """
@@ -285,3 +284,24 @@ class FastaWriter:
 
         return filename
 
+    @staticmethod
+    def write_list(list_to_write, output_dir='file/'):
+        """
+        This method creates the gene fasta file
+        :param string: A string representation of a .fasta file
+        :param output_dir: The path of the output dir
+        """
+        # The creation of the filename .
+        filename = output_dir + list_to_write[0][1]
+
+        if os.path.exists(filename):
+            print('File', filename, 'exists already')
+
+        else:
+            # Open the file.
+            file = open(filename, 'w')
+            for item in list_to_write:
+                file.write(item[0] + '\n\n')
+            file.close()
+
+        return filename
