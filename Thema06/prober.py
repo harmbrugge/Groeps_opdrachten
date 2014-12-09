@@ -11,34 +11,38 @@ class Prober:
         self.trans_table = str.maketrans("atcg", "tagc")
 
     def make_probes(self, genes):
+        # for gene in genes:
+        gene = genes[0]
 
-        # repeat_single_nuc = re.compile(r'(.)\1{3}')
-        # repeat_di_nuc = re.compile(r'(.{2})\1{2}')
+        i = 0
+        while i < len(gene.exon_seqs)-20:
+            cur_probe = gene.exon_seqs[i:i+20]
 
-        for gene in genes:
-            for i in range(0, len(gene.exon_seqs)-20):
-                cur_probe_id = i
-                cur_probe = gene.exon_seqs[i:i+20]
+            # Zoek naar 4-nuc-mono-repeats
+            if not re.search(r'(\w)\1{3}', cur_probe):
+                # Zoek naar 3-nuc-di-repeats
+                if not re.search(r'(\w{2})\1{2}', cur_probe):
 
-                if not re.search(r'(.)\1{3}', cur_probe):
-                    if not re.search(r'(.{2})\1{2}', cur_probe):
-                        # Pak alleen het gebied na 5 + 3(gap)
-                        hairpin_domain = cur_probe[8:]
-                        hairpin_bool = False
+                    # Pak alleen het gebied na 5(hairpin sequentie) + 3(gap)
+                    hairpin_domain = cur_probe[8:]
+                    hairpin_bool = False
 
-                        # Pak alle mogelijke sequenties van 5 in hairpin_domain
-                        for y in range(0, len(hairpin_domain)-5):
-                            hairpin_seq = hairpin_domain[y:y+5]
-                            # Maak de sequenties reverse complement
-                            hairpin_seq_rev_com = hairpin_seq.translate(self.trans_table)[::-1]
+                    # Pak alle mogelijke sequenties van 5 in hairpin_domain
+                    for y in range(0, len(hairpin_domain)-5):
+                        hairpin_seq = hairpin_domain[y:y+5]
+                        # Maak de sequenties reverse complement
+                        hairpin_seq_rev_com = hairpin_seq.translate(self.trans_table)[::-1]
 
-                            # Zoek op de probe naar de sequentie rekening houdens met eindlocatie
-                            if hairpin_seq_rev_com in cur_probe[:y+5]:
-                                hairpin_bool = True
-                                break
+                        # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
+                        if hairpin_seq_rev_com in cur_probe[:y+5]:
+                            hairpin_bool = True
+                            break
 
-                        if not hairpin_bool:
-                            self.probes.append(Probes(cur_probe_id, gene.gene_id, gene.chromosome_id, cur_probe))
+                    if not hairpin_bool:
+                        # tel 10 locatie op als geschikte probe is gevonden en construct probe object
+                        i += 10
+                        self.probes.append(Probes(i, gene.gene_id, gene.chromosome_id, cur_probe))
+            i += 1
 
         print(len(self.probes))
 
@@ -54,7 +58,7 @@ class Probes:
 
 def main():
 
-    for file in glob.glob(os.path.join('/Users/harmbrugge/Documents/Bio-inf/Thema06/plasmodium', '*.gbk')):
+    for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
         genbank = genbank_parser.GenBank(filename=file)
         genbank.make_chromosome()
         genes = genbank.make_genes()
