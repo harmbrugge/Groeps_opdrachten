@@ -211,7 +211,7 @@ class FastaWriter:
             seq_to_write.append('>gene_'
                                 + str(gene.gene_id)
                                 + '|' + str(gene.strand)
-                                + '|' + str(gene.protein) + '\n')
+                                + '|' + str(gene.protein).replace(' ', '-') + '\n')
 
             for i in range(0, len(gen_seq), 75):
                 seq_to_write.append(gen_seq[i:i+75] + '\n')
@@ -254,7 +254,6 @@ class FastaWriter:
                 seq_to_write.append('>probe_'
                                     + str(probe.probe_id)
                                     + '|' + str(gene.strand)
-                                    + '|' + str(gene.protein)
                                     + '|' + str(gene.gene_id)
                                     + '\n')
                 seq_to_write.append(probe.sequence + '\n\n')

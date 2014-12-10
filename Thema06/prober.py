@@ -11,17 +11,17 @@ class Prober:
         self.probe_count = 0
         self.trans_table = str.maketrans("atcg", "tagc")
 
-    def make_probes(self, gene, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=25, coverage=15):
+    def make_probes(self, gene, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10):
 
         i = 0
         probes = list()
-
+        csv_file = open("test.csv", 'w')
         while i < len(gene.exon_seqs) - probe_length:
             cur_probe = gene.exon_seqs[i:i+probe_length]
 
             # Zoek naar 4-nuc-mono-repeats
             nuc_mono_repeat = '(\w)\\1{' + str(nr_nuc_mono_repeat) + '}'
-            nuc_di_repeat = '(\w{2})\\1{' + str(nr_nuc_di_repeat) + '}'
+            nuc_di_repeat = '(\w{2,3})\\1{' + str(nr_nuc_di_repeat) + '}'
 
             if not re.search(nuc_mono_repeat, cur_probe):
                 # Zoek naar 3-nuc-di-repeats
@@ -48,23 +48,30 @@ class Prober:
                         # tel 10 locatie op als geschikte probe is gevonden en construct probe object
                         i += coverage
                         self.probe_count += 1
-                        probes.append(Probes(i, cur_probe))
+                        fraction = (i+1) / len(gene.exon_seqs)
+                        csv_file.write(str(gene.gene_id) + ';' + str(fraction) + '\n')
+
+                        probes.append(Probes(i, cur_probe, fraction))
+
             i += 1
 
+        csv_file.close()
         return probes
 
 
 class Probes:
 
-    def __init__(self, probe_id, sequence):
+    def __init__(self, probe_id, sequence, fraction):
         self.probe_id = probe_id
         self.sequence = sequence
+        self.fraction = fraction
 
 
 def main():
 
     gene_list = list()
     prober = Prober()
+
     for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
 
         genbank = genbank_parser.GenBank(filename=file)
@@ -77,8 +84,9 @@ def main():
         for gene in chromosome.genes:
             gene.probes = prober.make_probes(gene)
 
-        probe_list = genbank_parser.FastaWriter.get_probe_string(chromosome.genes)
-        genbank_parser.FastaWriter.write(probe_list)
+        print('CHROMOSOME ID:', chromosome.chromosome_id, ' GENE COUNT:', len(chromosome.genes))
+        # probe_list = genbank_parser.FastaWriter.get_probe_string(chromosome.genes)
+        # genbank_parser.FastaWriter.write(probe_list)
 
     print(prober.probe_count)
 
