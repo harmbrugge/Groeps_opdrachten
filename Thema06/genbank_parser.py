@@ -280,8 +280,7 @@ class FastaWriter:
         filename = output_dir + string[1]
 
         if os.path.exists(filename):
-            print('File', filename, 'exists already')
-
+            print('An exception ouccurd: File:', filename, 'exists already!')
         else:
             # Open the file.
             file = open(filename, 'w')
@@ -301,7 +300,7 @@ class FastaWriter:
         filename = output_dir + list_to_write[0][1]
 
         if os.path.exists(filename):
-            print('File', filename, 'exists already')
+            print('An exception ouccurd: File:', filename, 'exists already!')
 
         else:
             # Open the file.
