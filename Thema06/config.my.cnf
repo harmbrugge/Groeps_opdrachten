@@ -1,0 +1,9 @@
+[host]
+hostname = localhost
+
+[database]
+database_name = project_thema_06
+
+[user]
+password = Carbidbus123
+user = root

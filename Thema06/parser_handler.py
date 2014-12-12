@@ -34,8 +34,9 @@ class ParserHandler:
 
 
 def main():
-    p = ParserHandler('/homes/obbakker/Dropbox/Thema6/plasmodium/', 'plasmodium/')
+    p = ParserHandler('E:\Dropbox\Thema6', 'plasmodium/')
     p.open_file()
+    p.create_chromosome_fasta()
 
 
 

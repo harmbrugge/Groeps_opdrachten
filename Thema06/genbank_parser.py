@@ -172,6 +172,7 @@ class Gene:
     """
 
     def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome, probes=None):
+
         self.gene_id = gene_id
         self.chromosome_id = chromosome.chromosome_id
         self.organism = chromosome.organism
@@ -181,6 +182,12 @@ class Gene:
         self.protein = protein
         self.protein_id = protein_id
         self.probes = probes
+
+        self.possible_probe_count = 0
+        self.probe_count = 0
+        self.mono_count = 0
+        self.di_count = 0
+        self.hairpin_count = 0
 
 
 class FastaWriter:
