@@ -5,6 +5,7 @@ import glob
 import os
 import datetime
 import database_functions
+import sys
 
 
 class Prober:
@@ -109,6 +110,9 @@ class Handler:
         # Loop over the genbank Files
         for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
 
+            # Get the current time.
+            start_time = datetime.datetime.now()
+
             # Construct gene and chromosome objects.
             genbank = genbank_parser.GenBank(filename=file)
             chromosome = genbank.make_chromosome()
@@ -162,6 +166,12 @@ class Handler:
                                                                                   str(di_count),
                                                                                   str(hairpin_count),
                                                                                   str(cur_chromosome)])
+
+            # Calculate the time it took to make the probes and parse the file.
+            exec_time = (datetime.datetime.now()-start_time)
+            gb_obj_size = sys.getsizeof(genbank.file_string)
+
+            print(exec_time, ';', gb_obj_size)
             # Write the fasta files.
             probe_list = genbank_parser.FastaWriter.get_probe_string(chromosome.genes)
             genbank_parser.FastaWriter.write(probe_list)

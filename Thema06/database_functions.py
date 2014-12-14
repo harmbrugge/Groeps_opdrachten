@@ -110,5 +110,89 @@ class Dynamic():
                                                                          value_list))
         self.connection.commit()
 
+    def get_all(self, table_name, collumn_list):
+        """
+        This method gets all of the collumns from a particular table.
+        :return: Returns a list of dicts containing relevant records.
+        """
+        if type(collumn_list) == str:
+            collumn_string = collumn_list
+        else:
+            collumn_string = ','.join(collumn_list)
+
+        try:
+            record_list = []
+            self.database.execute("select {0} from {1};".format(collumn_string, table_name))
+
+            for cur_record in self.database:
+                record_list.append(cur_record)
+
+        except pymysql.MySQLError:
+            record_list = str('ERROR: pymysql.MySQLError')
+
+        return record_list
+
+    def get_specific(self, table_name, collumn_list, collumn, records):
+        """
+        This method gets specific collumns from a particular table.
+        :return: Returns a list of dicts containing relevant records.
+        """
+        if type(collumn_list) == str:
+            collumn_string = collumn_list
+        else:
+            collumn_string = ','.join(collumn_list)
+
+        try:
+            record_list = []
+            for record in records:
+
+                self.database.execute("select {0} from {3} where {2} = '{1}';".format(collumn_string,
+                                                                                      record,
+                                                                                      collumn,
+                                                                                      table_name))
+
+                for cur_record in self.database:
+                    record_list.append(cur_record)
+
+        except pymysql.MySQLError:
+            record_list = str('ERROR: pymysql.MySQLError')
+
+        return record_list
+
+    def get_join(self, table_name, collumn_list, pk, table_name_2, fk, collumn, value):
+        """
+        A method for executing query's containing a join statment.
+
+        :param table_name_2: The name of the 2nd table.
+        :param pk: The primary key of the first table.
+        :param fk: The forein key of the second table
+        :param collumn: The collumn for the where clause.
+        :param value: The value for the where clause.
+        :return: A list containg all the records from the query.
+        """
+
+        if type(collumn_list) == str:
+            collumn_string = collumn_list
+        else:
+            collumn_string = ','.join(collumn_list)
+        try:
+            record_list = []
+            self.database.execute("select {0} from {1} join {2} "
+                                  "on {1}.{3} = {2}.{4} "
+                                  "where {2}.{5} = '{6}';".format(collumn_string,
+                                                                  table_name,
+                                                                  table_name_2,
+                                                                  pk,
+                                                                  fk,
+                                                                  collumn,
+                                                                  value))
+            for cur_record in self.database:
+                record_list.append(cur_record)
+
+        except pymysql.MySQLError:
+            record_list = str('ERROR: pymysql.MySQLError')
+
+        return record_list
+
 
 
