@@ -150,7 +150,15 @@ class Handler:
 
         # Calculate the time it took to make the probes and parse the file.
         exec_time = (datetime.datetime.now()-start_time)
-        print(str(exec_time) + ';' + str(gb_obj_size))
+        print(str(exec_time) + ';'
+              + str(gb_obj_size)
+              + ';' + str(possible_probe_count)
+              + ';' + str(probe_count)
+              + ';' + str(mono_count)
+              + ';' + str(di_count)
+              + ';' + str(hairpin_count)
+
+        )
 
         # Close the cursor object.
         database.close_cursor()
