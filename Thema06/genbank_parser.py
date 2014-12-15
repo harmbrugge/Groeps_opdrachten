@@ -171,7 +171,7 @@ class Gene:
     data.
     """
 
-    def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome, probes=None):
+    def __init__(self, gene_id, strand, exon_regions, exon_seqs, protein, protein_id, chromosome, sequence=''):
 
         self.gene_id = gene_id
         self.chromosome_id = chromosome.chromosome_id
@@ -181,7 +181,8 @@ class Gene:
         self.exon_seqs = exon_seqs
         self.protein = protein
         self.protein_id = protein_id
-        self.probes = probes
+        self.probes = None
+        self.sequence = sequence
 
         self.possible_probe_count = 0
         self.probe_count = 0

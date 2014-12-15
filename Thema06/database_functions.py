@@ -67,12 +67,11 @@ class Main():
             # TODO make the error logging more 'dynamic' and not just printing a string.
 
 
-
 class Dynamic():
 
     def __init__(self):
         self.connection = None
-        self.database = None
+        self.cursor = None
 
     def get_cursor(self):
         """
@@ -85,115 +84,38 @@ class Dynamic():
                                           user=connection_data[1],
                                           passwd=connection_data[0])
 
-        self.database = self.connection.cursor(pymysql.cursors.DictCursor)
+        self.cursor = self.connection.cursor(pymysql.cursors.DictCursor)
 
     def close_cursor(self):
         """
         Close the cursor object.
         """
         self.connection.close()
-        self.database.close()
+        self.cursor.close()
 
-    def set_data(self, table_name, collumn_list, value_list):
+    def set_chromosome(self, chromosome_obj):
 
-        if type(collumn_list) == str:
-            collumn_string = collumn_list
-        else:
-            collumn_string = ','.join(collumn_list)
-
-        if type(value_list) == str:
-            value_list = '("' + value_list + '")'
-        else:
-            value_list = '("' + '","'.join(value_list) + '")'
-
-        self.database.execute("insert into {0} ({1}) values {2};".format(table_name,
-                                                                         collumn_string,
-                                                                         value_list))
+        self.cursor.execute('insert into th6_chromosome (organism, chromosome_def) '
+                            'values ("{0}", "{1}");'.format(chromosome_obj.organism,
+                                                            chromosome_obj.chromosome_id))
         self.connection.commit()
+        chromosome_obj.chromosome_id = self.connection.insert_id()
 
-    def get_all(self, table_name, collumn_list):
-        """
-        This method gets all of the collumns from a particular table.
-        :return: Returns a list of dicts containing relevant records.
-        """
-        if type(collumn_list) == str:
-            collumn_string = collumn_list
-        else:
-            collumn_string = ','.join(collumn_list)
+    def set_gene(self, gene_obj):
 
-        try:
-            record_list = []
-            self.database.execute("select {0} from {1};".format(collumn_string, table_name))
-
-            for cur_record in self.database:
-                record_list.append(cur_record)
-
-        except pymysql.MySQLError:
-            record_list = str('ERROR: pymysql.MySQLError')
-
-        return record_list
-
-    def get_specific(self, table_name, collumn_list, collumn, records):
-        """
-        This method gets specific collumns from a particular table.
-        :return: Returns a list of dicts containing relevant records.
-        """
-        if type(collumn_list) == str:
-            collumn_string = collumn_list
-        else:
-            collumn_string = ','.join(collumn_list)
-
-        try:
-            record_list = []
-            for record in records:
-
-                self.database.execute("select {0} from {3} where {2} = '{1}';".format(collumn_string,
-                                                                                      record,
-                                                                                      collumn,
-                                                                                      table_name))
-
-                for cur_record in self.database:
-                    record_list.append(cur_record)
-
-        except pymysql.MySQLError:
-            record_list = str('ERROR: pymysql.MySQLError')
-
-        return record_list
-
-    def get_join(self, table_name, collumn_list, pk, table_name_2, fk, collumn, value):
-        """
-        A method for executing query's containing a join statment.
-
-        :param table_name_2: The name of the 2nd table.
-        :param pk: The primary key of the first table.
-        :param fk: The forein key of the second table
-        :param collumn: The collumn for the where clause.
-        :param value: The value for the where clause.
-        :return: A list containg all the records from the query.
-        """
-
-        if type(collumn_list) == str:
-            collumn_string = collumn_list
-        else:
-            collumn_string = ','.join(collumn_list)
-        try:
-            record_list = []
-            self.database.execute("select {0} from {1} join {2} "
-                                  "on {1}.{3} = {2}.{4} "
-                                  "where {2}.{5} = '{6}';".format(collumn_string,
-                                                                  table_name,
-                                                                  table_name_2,
-                                                                  pk,
-                                                                  fk,
-                                                                  collumn,
-                                                                  value))
-            for cur_record in self.database:
-                record_list.append(cur_record)
-
-        except pymysql.MySQLError:
-            record_list = str('ERROR: pymysql.MySQLError')
-
-        return record_list
+        self.cursor.execute('insert into th6_gene (chromosome_id,'
+                                                  'external_id,'
+                                                  'sequence,'
+                                                  'strand,'
+                                                  'protein,'
+                                                  'protein_id)'
+                            'values ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}");'.format(gene_obj.chromosome_id,
+                                                                                        gene_obj.gene_id,
+                                                                                        gene_obj.sequence,
+                                                                                        gene_obj.strand,
+                                                                                        gene_obj.protein,
+                                                                                        gene_obj.protein_id))
+        self.connection.commit()
 
 
 

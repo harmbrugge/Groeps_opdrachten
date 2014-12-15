@@ -3,7 +3,6 @@ import genbank_parser
 import re
 import glob
 import os
-import datetime
 import database_functions
 import sys
 import time
@@ -105,38 +104,39 @@ class Probes:
         self.fraction = fraction
 
 
-class Handler:
-
-    @staticmethod
-    def handler(chromosome, gb_obj_size, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10):
-        # TODO finalize the database model and implement it so the code can be eddit tow rok with this.
-
-        start_time = time.time()
-        prober = Prober()
-
-        for gene in chromosome.genes:
-            gene.probes = prober.make_probes(gene)
-
-        # Close the cursor object.
-        database.close_cursor()
-
-
 def main():
-    chromosome_list = []
 
+    chromosome_list = []
     database = database_functions.Dynamic()
     database.get_cursor()
 
+    nr_nuc_mono_repeat = 3
+    nr_nuc_di_repeat = 2
+    probe_length = 20
+    coverage = 10
+
     for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
+
         # Construct gene and chromosome objects.
         genbank = genbank_parser.GenBank(filename=file)
         chromosome = genbank.make_chromosome()
+        database.set_chromosome(chromosome)
 
         chromosome.genes = genbank.make_genes()
         chromosome_list.append(chromosome)
 
-        Handler().handler(chromosome=chromosome,
-                          gb_obj_size=sys.getsizeof(genbank.file_string))
+        prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
+                        nr_nuc_mono_repeat=nr_nuc_mono_repeat,
+                        probe_length=probe_length,
+                        coverage=coverage)
+
+        for gene in chromosome.genes:
+            gene.probes = prober.make_probes(gene)
+            database.set_gene(gene)
+
+        # Close the cursor object.
+    database.close_cursor()
+
 
 if __name__ == '__main__':
     main()

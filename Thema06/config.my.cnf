@@ -1,9 +1,9 @@
 [host]
-hostname = localhost
+hostname = mysql.bin
 
 [database]
-database_name = project_thema_06
+database_name = Obbakker
 
 [user]
 password = Carbidbus123
-user = root
+user = obbakker
