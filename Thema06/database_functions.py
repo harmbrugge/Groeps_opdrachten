@@ -84,13 +84,13 @@ class Database:
             'count_mono_repeat, '
             'count_di_repeat, '
             'count_hairpin) '
-            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6})').format(prober.nr_nuc_mono_repeat,
+            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6})'.format(prober.nr_nuc_mono_repeat,
                                     prober.nr_nuc_di_repeat,
                                     prober.coverage,
                                     prober.probe_length,
                                     prober.mono_count,
                                     prober.di_count,
-                                    prober.hairpin_count)
+                                    prober.hairpin_count))
         experiment_id = self.conn.insert_id()
 
         for gene in chromosome.genes:
@@ -98,12 +98,8 @@ class Database:
                 self.cur.execute('INSERT INTO th6_oligo (gene_id, '
                                  'probe_experiment_id, '
                                  'sequence, '
-                                 'cg_perc, '
-                                 'temp_melt,'
                                  'fraction) '
-                                 'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}")'.format(gene.db_id,
-                                                                                     experiment_id,
-                                                                                     probe.sequence,
-                                                                                     probe.cg_perc,
-                                                                                     probe.temp_melt,
-                                                                                     probe.fraction))
+                                 'VALUES ({0}, "{1}", "{2}", {3})'.format(gene.db_id,
+                                                                              experiment_id,
+                                                                              probe.sequence,
+                                                                              probe.fraction))
