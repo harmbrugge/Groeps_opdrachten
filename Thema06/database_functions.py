@@ -45,7 +45,7 @@ class Database:
         Close the connection after you're done
         """
         self.conn.commit()
-        self.cur = self.conn.cursor()
+        self.cur.close()
         self.conn.close()
 
     def set_chromosome(self, chromosome_obj):
@@ -65,10 +65,8 @@ class Database:
                          'protein_id)'
                          'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}");'.format(gene_obj.chromosome_id,
                                                                                      gene_obj.gene_id,
-                                                                                     gene_obj.sequence,
+                                                                                     gene_obj.exon_seqs,
                                                                                      gene_obj.strand,
                                                                                      gene_obj.protein,
                                                                                      gene_obj.protein_id))
         # self.conn.commit()
-
-
