@@ -4,7 +4,6 @@ import re
 import glob
 import os
 import database_functions
-import sys
 import time
 
 
@@ -105,10 +104,11 @@ class Probes:
 
 
 def main():
+    start_time = time.time()
 
     chromosome_list = []
-    database = database_functions.Dynamic()
-    database.get_cursor()
+    database = database_functions.Database()
+    database.open_connection()
 
     nr_nuc_mono_repeat = 3
     nr_nuc_di_repeat = 2
@@ -134,10 +134,9 @@ def main():
             gene.probes = prober.make_probes(gene)
             database.set_gene(gene)
 
-        # Close the cursor object.
-    database.close_cursor()
+    database.close_connection()
 
+    print(time.time()-start_time)
 
 if __name__ == '__main__':
     main()
-    #C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit timeit C:\python34\python prober.py

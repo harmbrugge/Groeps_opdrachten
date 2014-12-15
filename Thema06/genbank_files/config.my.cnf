@@ -1,9 +1,0 @@
-[host]
-hostname = localhost
-
-[database]
-database_name = databases_2_assignment_03
-
-[user]
-password = Carbidbus123
-user = root

@@ -1,9 +1,0 @@
-[host]
-hostname = mysql.bin
-
-[database]
-database_name = Obbakker
-
-[user]
-password = Carbidbus123
-user = obbakker
