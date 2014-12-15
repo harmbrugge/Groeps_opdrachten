@@ -16,8 +16,6 @@ class Prober:
         self.probe_length = probe_length
         self.coverage = coverage
 
-        self.probes = None
-
         self.trans_table = str.maketrans("atcg", "tagc")
         self.possible_probe_count = 0
         self.probe_count = 0
@@ -101,6 +99,8 @@ class Probes:
         self.probe_id = probe_id
         self.sequence = sequence
         self.fraction = fraction
+        self.cg_perc = None
+        self.temp_melt = None
 
 
 def main():
@@ -121,6 +121,7 @@ def main():
         genbank = genbank_parser.GenBank(filename=file)
         chromosome = genbank.make_chromosome()
         database.set_chromosome(chromosome)
+        print('Chromsome set to DB:', chromosome.chromosome_id)
 
         chromosome.genes = genbank.make_genes()
         chromosome_list.append(chromosome)
@@ -133,6 +134,11 @@ def main():
         for gene in chromosome.genes:
             gene.probes = prober.make_probes(gene)
             database.set_gene(gene)
+        print('Genes set to DB:', chromosome.chromosome_id)
+
+        database.set_probes_from_chromsome(prober, chromosome)
+
+        print('Probes set to DB:', chromosome.chromosome_id)
 
     database.close_connection()
 

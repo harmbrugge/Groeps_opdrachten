@@ -183,6 +183,8 @@ class Gene:
         self.protein_id = protein_id
         self.probes = None
 
+        self.db_id = None
+
         self.possible_probe_count = 0
         self.probe_count = 0
         self.mono_count = 0

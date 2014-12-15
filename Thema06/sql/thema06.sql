@@ -76,6 +76,7 @@ CREATE  TABLE IF NOT EXISTS `th6_oligo` (
   `sequence` CHAR(25) NOT NULL ,
   `cg_perc` DOUBLE NULL ,
   `temp_melt` DOUBLE NULL ,
+  `fraction` DOUBLE NULL ,
   PRIMARY KEY (`id`) ,
   INDEX `fk_oligo_gene1` (`gene_id` ASC) ,
   INDEX `fk_oligo_probe_experiment1` (`probe_experiment_id` ASC) ,
