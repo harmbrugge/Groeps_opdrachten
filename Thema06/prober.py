@@ -11,11 +11,23 @@ import time
 
 class Prober:
 
-    def __init__(self):
+    def __init__(self, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10):
+
+        self.nr_nuc_mono_repeat = nr_nuc_mono_repeat
+        self.nr_nuc_di_repeat = nr_nuc_di_repeat
+        self.probe_length = probe_length
+        self.coverage = coverage
+
+        self.probes = None
 
         self.trans_table = str.maketrans("atcg", "tagc")
+        self.possible_probe_count = 0
+        self.probe_count = 0
+        self.mono_count = 0
+        self.di_count = 0
+        self.hairpin_count = 0
 
-    def make_probes(self, gene, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10):
+    def make_probes(self, gene):
 
         i = 0
         mono_time_list = []
@@ -23,15 +35,17 @@ class Prober:
         hairpin_time_list = []
         probes = list()
 
-        while i < len(gene.exon_seqs) - probe_length:
+        while i < len(gene.exon_seqs) - self.probe_length:
 
             gene.possible_probe_count += 1
-            cur_probe = gene.exon_seqs[i:i+probe_length]
+            self.possible_probe_count += 1
+
+            cur_probe = gene.exon_seqs[i:i+self.probe_length]
             start_time = time.time()
 
             # Zoek naar 4-nuc-mono-repeats
-            nuc_mono_repeat = '(\w)\\1{' + str(nr_nuc_mono_repeat) + '}'
-            nuc_di_repeat = '(\w{2,3})\\1{' + str(nr_nuc_di_repeat) + '}'
+            nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
+            nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
 
             if not re.search(nuc_mono_repeat, cur_probe):
                 mono_time_list.append(time.time()-start_time)
@@ -54,6 +68,7 @@ class Prober:
                         # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
                         if hairpin_seq_rev_com in cur_probe[:y+5]:
                             gene.hairpin_count += 1
+                            self.hairpin_count += 1
                             hairpin_bool = True
                             break
 
@@ -61,33 +76,25 @@ class Prober:
 
                     if not hairpin_bool:
                         # tel 10 locatie op als geschikte probe is gevonden en construct probe object
-                        i += coverage
+                        i += self.coverage
                         gene.probe_count += 1
+                        self.probe_count += 1
                         fraction = (i+1) / len(gene.exon_seqs)
 
                         probes.append(Probes(i, cur_probe, fraction))
 
                 else:
+                    self.di_count += 1
                     gene.di_count += 1
                     mono_time_list.append(time.time()-start_time)
             else:
+                self.mono_count += 1
                 gene.mono_count += 1
                 mono_time_list.append(time.time()-start_time)
 
             i += 1
 
-        # print(mono_time_list)
-        # print(di_time_list)
-        # print(hairpin_time_list)
-        #                 sum(mono_time_list)/len(mono_time_list),
-        #         sum(di_time_list)/len(di_time_list),
-        #         sum(hairpin_time_list)/len(hairpin_time_list)]
-
-
-        return [probes,
-                sum(mono_time_list),
-                sum(di_time_list),
-                sum(hairpin_time_list)]
+        return probes
 
 
 class Probes:
@@ -106,96 +113,9 @@ class Handler:
 
         start_time = time.time()
         prober = Prober()
-        database = database_functions.Dynamic()
-        database.get_cursor()
 
-        session_id = 'SESSION TEST|' + str(datetime.datetime.now())
-
-        # Add session entry to db.
-        database.set_data('sessions', ['session_id',
-                                       'date'], [session_id,
-                                                 str(datetime.datetime.now())])
-
-        # Add the parameters to the database.
-        database.set_data('settings', ['mono_repeat',
-                                       'di_repeat',
-                                       'probe_len',
-                                       'covarage',
-                                       'sessions_session_id'], [str(nr_nuc_mono_repeat),
-                                                                str(nr_nuc_di_repeat),
-                                                                str(probe_length),
-                                                                str(coverage),
-                                                                str(session_id)])
-
-        # Initialize the counters.
-        possible_probe_count = 0
-        probe_count = 0
-        mono_count = 0
-        di_count = 0
-        hairpin_count = 0
-
-        mono_time = 0
-        di_time = 0
-        hairpin_time = 0
-
-
-
-        # Constuct an id for the database.
-        cur_chromosome = 'chromosome_' + str(chromosome.chromosome_id) + '|' + str(chromosome.organism)
-
-        # Set the chromome table.
-        database.set_data('chromosomes', ['chromosome_id',
-                                          'gene_count',
-                                          'sessions_session_id'], [str(cur_chromosome),
-                                                                   str(len(chromosome.genes)),
-                                                                   str(session_id)])
-        # Loop over the genes in the chromosome.
         for gene in chromosome.genes:
-            # Construct the probes.
-            probes = prober.make_probes(gene,
-                                             nr_nuc_mono_repeat=nr_nuc_mono_repeat,
-                                             nr_nuc_di_repeat=nr_nuc_di_repeat,
-                                             probe_length=probe_length,
-                                             coverage=coverage)
-            gene.probes = probes[0]
-
-            # Append the values from eacht gene to the counter defined above.
-            possible_probe_count += gene.possible_probe_count
-            probe_count += gene.probe_count
-            mono_count += gene.mono_count
-            di_count += gene.di_count
-            hairpin_count += gene.hairpin_count
-
-            mono_time += probes[1]
-            di_time += probes[2]
-            hairpin_time += probes[3]
-
-        # Set the probe data in the database.
-        database.set_data('discarded_probes', ['count_total',
-                                               'count_valid_probes',
-                                               'count_mono_repeat',
-                                               'count_di_repeat',
-                                               'count_hairpin',
-                                               'chromosomes_chromosome_id'], [str(possible_probe_count),
-                                                                              str(probe_count),
-                                                                              str(mono_count),
-                                                                              str(di_count),
-                                                                              str(hairpin_count),
-                                                                              str(cur_chromosome)])
-
-        # Calculate the time it took to make the probes and parse the file.
-        exec_time = (time.time()-start_time)
-        print(str(exec_time) + ';'
-              + str(gb_obj_size)
-              + ';' + str(possible_probe_count)
-              + ';' + str(probe_count)
-              + ';' + str(mono_count)
-              + ';' + str(di_count)
-              + ';' + str(hairpin_count)
-              + ';' + str(mono_time)
-              + ';' + str(di_time)
-              + ';' + str(hairpin_time)
-        )
+            gene.probes = prober.make_probes(gene)
 
         # Close the cursor object.
         database.close_cursor()
@@ -203,10 +123,15 @@ class Handler:
 
 def main():
     chromosome_list = []
+
+    database = database_functions.Dynamic()
+    database.get_cursor()
+
     for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
         # Construct gene and chromosome objects.
         genbank = genbank_parser.GenBank(filename=file)
         chromosome = genbank.make_chromosome()
+
         chromosome.genes = genbank.make_genes()
         chromosome_list.append(chromosome)
 
