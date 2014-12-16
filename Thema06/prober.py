@@ -23,6 +23,8 @@ class Prober:
         self.di_count = 0
         self.hairpin_count = 0
 
+        self.id = None
+
     def make_probes(self, gene):
 
         i = 0
@@ -106,38 +108,46 @@ class Probes:
 def main():
     start_time = time.time()
 
-    chromosome_list = []
-    database = database_functions.Database()
-    database.open_connection()
-
     nr_nuc_mono_repeat = 3
     nr_nuc_di_repeat = 2
     probe_length = 20
     coverage = 10
 
-    for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
+    prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
+                    nr_nuc_mono_repeat=nr_nuc_mono_repeat,
+                    probe_length=probe_length,
+                    coverage=coverage)
 
-        # Construct gene and chromosome objects.
+    chromosome_list = list()
+
+    # loop over gbk files genbank dir
+    for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
+        # read genbank file
         genbank = genbank_parser.GenBank(filename=file)
+
+        # make chromsome, gene & probe objects
         chromosome = genbank.make_chromosome()
+        chromosome.genes = genbank.make_genes()
+        for gene in chromosome.genes:
+            gene.probes = prober.make_probes(gene)
+
+        chromosome_list.append(chromosome)
+        print('Done with chromsome:', chromosome.chromosome_id)
+
+    # open a DB connection
+    database = database_functions.Database()
+    database.open_connection()
+
+    # set data to DB
+    database.set_probe_experiment(prober)
+    for chromosome in chromosome_list:
         database.set_chromosome(chromosome)
         print('Chromsome set to DB:', chromosome.chromosome_id)
 
-        chromosome.genes = genbank.make_genes()
-        chromosome_list.append(chromosome)
-
-        prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
-                        nr_nuc_mono_repeat=nr_nuc_mono_repeat,
-                        probe_length=probe_length,
-                        coverage=coverage)
-
         for gene in chromosome.genes:
-            gene.probes = prober.make_probes(gene)
-            database.set_gene(gene)
+            database.set_gene(gene, chromosome.chromosome_id)
+            database.set_probes(prober, gene)
         print('Genes set to DB:', chromosome.chromosome_id)
-
-        database.set_probes_from_chromsome(prober, chromosome)
-
         print('Probes set to DB:', chromosome.chromosome_id)
 
     database.close_connection()

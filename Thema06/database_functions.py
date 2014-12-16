@@ -49,13 +49,29 @@ class Database:
         self.conn.close()
 
     def set_chromosome(self, chromosome_obj):
-        self.cur.execute('INSERT INTO th6_chromosome (organism, chromosome_def) '
-                         'VALUES ("{0}", "{1}");'.format(chromosome_obj.organism,
-                                                         chromosome_obj.chromosome_id))
+        # Use only first two words in organism name for database entry (not bullet proof)
+        chromosome_obj.organism = re.search('([^\s]+\s+[^\s]+)', chromosome_obj.organism).group(1)
+
+        # Search if the organism naam exists in database
+        self.cur.execute('SELECT id FROM th6_organism WHERE name = "{0}"'.format(chromosome_obj.organism))
+        organism_id = self.cur.fetchone()
+
+        # If exists use the id for insert in DB, else create new organism entry
+        if organism_id:
+            chromosome_obj.organism_id = organism_id[0]
+        else:
+            self.cur.execute('INSERT INTO th6_organism (name) VALUE ("{0}")'.format(chromosome_obj.organism))
+            chromosome_obj.organism_id = self.conn.insert_id()
+
+        # Insert chromsome into to DB
+        self.cur.execute('INSERT INTO th6_chromosome (organism_id, organism, chromosome_def) '
+                         'VALUES ("{0}", "{1}", "{2}");'.format(chromosome_obj.organism_id,
+                                                                chromosome_obj.organism,
+                                                                chromosome_obj.chromosome_id))
         # self.conn.commit()
         chromosome_obj.chromosome_id = self.conn.insert_id()
 
-    def set_gene(self, gene_obj):
+    def set_gene(self, gene_obj, chromosome_id):
 
         self.cur.execute('INSERT INTO th6_gene (chromosome_id,'
                          'external_id,'
@@ -63,7 +79,7 @@ class Database:
                          'strand,'
                          'protein,'
                          'protein_id)'
-                         'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}");'.format(gene_obj.chromosome_id,
+                         'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}");'.format(chromosome_id,
                                                                                      gene_obj.gene_id,
                                                                                      gene_obj.exon_seqs,
                                                                                      gene_obj.strand,
@@ -72,8 +88,7 @@ class Database:
         gene_obj.db_id = self.conn.insert_id()
 
         # self.conn.commit()
-
-    def set_probes_from_chromsome(self, prober, chromosome):
+    def set_probe_experiment(self, prober):
         self.cur.execute(
             'INSERT INTO th6_probe_experiment '
             '(date, '
@@ -83,23 +98,48 @@ class Database:
             'set_probe_len, '
             'count_mono_repeat, '
             'count_di_repeat, '
-            'count_hairpin) '
-            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6})'.format(prober.nr_nuc_mono_repeat,
-                                    prober.nr_nuc_di_repeat,
-                                    prober.coverage,
-                                    prober.probe_length,
-                                    prober.mono_count,
-                                    prober.di_count,
-                                    prober.hairpin_count))
-        experiment_id = self.conn.insert_id()
+            'count_hairpin,'
+            'count_possible,'
+            'count_total) '
+            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})'.format(prober.nr_nuc_mono_repeat,
+                                                                                prober.nr_nuc_di_repeat,
+                                                                                prober.coverage,
+                                                                                prober.probe_length,
+                                                                                prober.mono_count,
+                                                                                prober.di_count,
+                                                                                prober.hairpin_count,
+                                                                                prober.possible_probe_count,
+                                                                                prober.probe_count))
+        # get the inserted primary key, needed for fk oligo table
+        prober.id = self.conn.insert_id()
 
-        for gene in chromosome.genes:
-            for probe in gene.probes:
-                self.cur.execute('INSERT INTO th6_oligo (gene_id, '
-                                 'probe_experiment_id, '
-                                 'sequence, '
-                                 'fraction) '
-                                 'VALUES ({0}, "{1}", "{2}", {3})'.format(gene.db_id,
-                                                                              experiment_id,
-                                                                              probe.sequence,
-                                                                              probe.fraction))
+    def set_probes(self, prober, gene):
+        for probe in gene.probes:
+            self.cur.execute('INSERT INTO th6_oligo (gene_id, '
+                             'probe_experiment_id, '
+                             'sequence, '
+                             'fraction) '
+                             'VALUES ({0}, {1}, "{2}", {3})'.format(gene.db_id,
+                                                                    prober.id,
+                                                                    probe.sequence,
+                                                                    probe.fraction))
+        self.cur.execute('INSERT INTO th6_experiment_genes ('
+                         'th6_gene_id, '
+                         'th6_probe_experiment_id, '
+                         'count_mono_repeat, '
+                         'count_di_repeat, '
+                         'count_hairpin, '
+                         'count_possible, '
+                         'count_total) '
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6})'.format(gene.db_id,
+                                                                             prober.id,
+                                                                             gene.mono_count,
+                                                                             gene.di_count,
+                                                                             gene.hairpin_count,
+                                                                             gene.possible_probe_count,
+                                                                             gene.probe_count))
+
+    def get_chromomes(self,):
+        self.cur.execute()
+
+        return self.cur.fetchall()

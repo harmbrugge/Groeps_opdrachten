@@ -117,7 +117,7 @@ def main():
     print("Content-Type: text/html")
     print()
 
-    #print(html.get_java_script())
+    # print(html.get_java_script())
     print(html.open_html())
     print(html.open_body())
     print(html.get_head("GenBank parser"))

@@ -162,6 +162,7 @@ class Chromosome:
         self.chromosome_id = chromosome_id
         self.seq = seq
         self.organism = organism
+        self.organism_id = None
         self.genes = None
 
 
