@@ -51,10 +51,20 @@ class Database:
         self.conn.close()
 
     def set_globals(self, bool):
+        """
+        Used for major import operations.
+        :param bool:
+        :return:
+        """
+
         if bool:
-            self.cur.execute('SET autocommit = 0')
-        else:
             self.cur.execute('SET autocommit = 1')
+            self.cur.execute('SET foreign_key_checks = 1;')
+            self.cur.execute('SET unique_checks=1;')
+        else:
+            self.cur.execute('SET autocommit = 0')
+            self.cur.execute('SET foreign_key_checks = 0;')
+            self.cur.execute('SET unique_checks=0;')
 
     def set_chromosome(self, chromosome_obj):
         # Use only first two words in organism name for database entry (not bullet proof)
@@ -108,8 +118,10 @@ class Database:
             'count_di_repeat, '
             'count_hairpin,'
             'count_possible,'
-            'count_total) '
-            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8})'.format(prober.nr_nuc_mono_repeat,
+            'count_total,'
+            'count_gc,'
+            'time_total) '
+            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})'.format(prober.nr_nuc_mono_repeat,
                                                                                 prober.nr_nuc_di_repeat,
                                                                                 prober.coverage,
                                                                                 prober.probe_length,
@@ -117,20 +129,26 @@ class Database:
                                                                                 prober.di_count,
                                                                                 prober.hairpin_count,
                                                                                 prober.possible_probe_count,
-                                                                                prober.probe_count))
+                                                                                prober.probe_count,
+                                                                                prober.gc_count,
+                                                                                prober.time_total))
         # get the inserted primary key, needed for fk oligo table
         prober.id = self.conn.insert_id()
 
     def set_probes(self, prober, gene):
+
         for probe in gene.probes:
+
             self.cur.execute('INSERT INTO th6_oligo (gene_id, '
                              'probe_experiment_id, '
                              'sequence, '
-                             'fraction) '
-                             'VALUES ({0}, {1}, "{2}", {3})'.format(gene.db_id,
+                             'fraction,'
+                             'cg_perc) '
+                             'VALUES ({0}, {1}, "{2}", {3}, {4})'.format(gene.db_id,
                                                                     prober.id,
                                                                     probe.sequence,
-                                                                    probe.fraction))
+                                                                    probe.fraction,
+                                                                    probe.gc_perc))
             probe.probe_id = self.conn.insert_id()
 
         self.cur.execute('INSERT INTO th6_experiment_genes ('
@@ -140,14 +158,26 @@ class Database:
                          'count_di_repeat, '
                          'count_hairpin, '
                          'count_possible, '
-                         'count_total) '
-                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6})'.format(gene.db_id,
+                         'count_total,'
+                         'count_gc,'
+                         'time_mono,'
+                         'time_di,'
+                         'time_hairpin,'
+                         'time_total,'
+                         'time_gc) '
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12})'.format(gene.db_id,
                                                                              prober.id,
                                                                              gene.mono_count,
                                                                              gene.di_count,
                                                                              gene.hairpin_count,
                                                                              gene.possible_probe_count,
-                                                                             gene.probe_count))
+                                                                             gene.probe_count,
+                                                                             gene.gc_count,
+                                                                             gene.time_mono,
+                                                                             gene.time_di,
+                                                                             gene.time_hairpin,
+                                                                             gene.time_total,
+                                                                             gene.time_gc))
 
     def get_chromomes(self):
         self.cur.execute('SELECT * FROM th6_chromosome')
@@ -193,3 +223,5 @@ if __name__ == '__main__':
     db.close_connection()
 
     print(time.time()-start_time)
+
+# C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py

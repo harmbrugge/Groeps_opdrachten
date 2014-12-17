@@ -191,6 +191,13 @@ class Gene:
         self.mono_count = 0
         self.di_count = 0
         self.hairpin_count = 0
+        self.gc_count = 0
+
+        self.time_total = 0
+        self.time_mono = 0
+        self.time_di = 0
+        self.time_hairpin = 0
+        self.time_gc = 0
 
 
 class FastaWriter:
@@ -312,3 +319,5 @@ class FastaWriter:
             file.close()
 
         return filename
+
+# C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py

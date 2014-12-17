@@ -7,7 +7,6 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 
-
 -- -----------------------------------------------------
 -- Table `th6_organism`
 -- -----------------------------------------------------
@@ -100,7 +99,7 @@ CREATE TABLE IF NOT EXISTS `th6_oligo` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `gene_id` INT NOT NULL,
   `probe_experiment_id` INT NOT NULL,
-  `sequence` CHAR(25) NOT NULL,
+  `sequence` VARCHAR(25) NOT NULL,
   `cg_perc` DOUBLE NULL DEFAULT NULL,
   `temp_melt` DOUBLE NULL DEFAULT NULL,
   `fraction` DOUBLE NULL DEFAULT NULL,
