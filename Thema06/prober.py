@@ -134,6 +134,7 @@ def main():
     # loop over gbk files genbank dir
     for file in glob.glob(os.path.join('genbank_files/', '*.gbk')):
         # read genbank file
+        print(file)
         genbank = genbank_parser.GenBank(filename=file)
 
         # make chromsome, gene & probe objects

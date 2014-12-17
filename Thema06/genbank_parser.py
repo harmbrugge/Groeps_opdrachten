@@ -56,7 +56,7 @@ class GenBank:
         """
 
         # The regex code that searches for the chromosome.
-        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\d+)', self.file_string)
+        definition = re.search('DEFINITION\s*(.*)\schromosome\s(\w+)', self.file_string)
 
         if definition:
             definition = definition
