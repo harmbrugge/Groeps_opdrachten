@@ -104,8 +104,8 @@ class GenBank:
 
             # The regex to get all of the info from an cds.
             exon_seqs = list()
-            exon_regions = re.findall('.(\d*)\.\.>?(\d*)', cur_cds, re.DOTALL)
-            gene_id = re.search('/db_xref="GeneID:(\d*)', cur_cds)
+            exon_regions = re.findall('.(\d+)\.\.>?(\d+)', cur_cds, re.DOTALL)
+            gene_id = re.search('/db_xref="GI:(\d*)', cur_cds)
             protein_id = re.search('/protein_id="(.*)"', cur_cds)
             protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL)
 
