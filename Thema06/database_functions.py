@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 import pymysql
 import re
-import datetime
+import prober
+from genbank_parser import Gene, Chromosome
+import time
 
 
 class Database:
@@ -139,7 +141,40 @@ class Database:
                                                                              gene.possible_probe_count,
                                                                              gene.probe_count))
 
-    def get_chromomes(self,):
-        self.cur.execute()
+    def get_chromomes(self):
+        self.cur.execute('SELECT * FROM th6_chromosome')
+        chromosome_list = list()
 
-        return self.cur.fetchall()
+        for row in self.cur.fetchall():
+            chromosome_list.append(Chromosome('', row[0], row[3]))
+
+        return chromosome_list
+
+    def get_genes(self, chromosome):
+        self.cur.execute('SELECT * FROM th6_gene WHERE chromosome_id = "{0}"'.format(chromosome.chromosome_id))
+        for row in self.cur.fetchall():
+            chromosome.genes.append(Gene(row[0], row[6], None, row[3], row[7], row[8], chromosome))
+
+    def get_probes(self, gene):
+        self.cur.execute('SELECT * FROM th6_oligo WHERE gene_id = "{0}"'.format(gene.gene_id))
+        for row in self.cur.fetchall():
+            pass
+            gene.probes.append(prober.Probes(row[0], row[3], row[6]))
+
+if __name__ == '__main__':
+    start_time = time.time()
+
+    db = Database()
+    db.open_connection()
+
+    chromosomes = db.get_chromomes()
+    for chrom in chromosomes:
+        db.get_genes(chrom)
+
+    for chrom in chromosomes:
+        for gen in chrom.genes:
+            db.get_probes(gen)
+
+    db.close_connection()
+
+    print(time.time()-start_time)

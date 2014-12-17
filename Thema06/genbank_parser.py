@@ -163,7 +163,7 @@ class Chromosome:
         self.seq = seq
         self.organism = organism
         self.organism_id = None
-        self.genes = None
+        self.genes = list()
 
 
 class Gene:
@@ -182,7 +182,7 @@ class Gene:
         self.exon_seqs = exon_seqs
         self.protein = protein
         self.protein_id = protein_id
-        self.probes = None
+        self.probes = list()
 
         self.db_id = None
 
