@@ -22,6 +22,7 @@ class Prober:
         self.mono_count = 0
         self.di_count = 0
         self.hairpin_count = 0
+        self.cg_count = 0
 
         self.id = None
 
@@ -32,63 +33,73 @@ class Prober:
         di_time_list = []
         hairpin_time_list = []
         probes = list()
+        test_count = 0
 
         while i < len(gene.exon_seqs) - self.probe_length:
-
             gene.possible_probe_count += 1
             self.possible_probe_count += 1
 
             cur_probe = gene.exon_seqs[i:i+self.probe_length]
             start_time = time.time()
-
-            # Zoek naar 4-nuc-mono-repeats
-            nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
-            nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
-
-            if not re.search(nuc_mono_repeat, cur_probe):
-                mono_time_list.append(time.time()-start_time)
-                # Zoek naar 3-nuc-di-repeats
-                start_time = time.time()
-                if not re.search(nuc_di_repeat, cur_probe):
-
-                    # Pak alleen het gebied na 5(hairpin sequentie) + 3(gap)
-                    hairpin_domain = cur_probe[8:]
-                    hairpin_bool = False
-                    di_time_list.append(time.time()-start_time)
-                    # Pak alle mogelijke sequenties van 5 in hairpin_domain
-                    start_time = time.time()
-                    for y in range(0, len(hairpin_domain)-5):
-                        hairpin_seq = hairpin_domain[y:y+5]
-
-                        # Maak de sequenties reverse complement
-                        hairpin_seq_rev_com = hairpin_seq.translate(self.trans_table)[::-1]
-
-                        # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
-                        if hairpin_seq_rev_com in cur_probe[:y+5]:
-                            gene.hairpin_count += 1
-                            self.hairpin_count += 1
-                            hairpin_bool = True
-                            break
-
-                    hairpin_time_list.append(time.time()-start_time)
-
-                    if not hairpin_bool:
-                        # tel 10 locatie op als geschikte probe is gevonden en construct probe object
-                        i += self.coverage
-                        gene.probe_count += 1
-                        self.probe_count += 1
-                        fraction = (i+1) / len(gene.exon_seqs)
-
-                        probes.append(Probes(i, cur_probe, fraction))
-
-                else:
-                    self.di_count += 1
-                    gene.di_count += 1
-                    mono_time_list.append(time.time()-start_time)
+            cg_count = cur_probe.count('c')
+            cg_count += cur_probe.count('g')
+            if cg_count == 0:
+                cg_perc = 0
             else:
-                self.mono_count += 1
-                gene.mono_count += 1
-                mono_time_list.append(time.time()-start_time)
+                cg_perc = cg_count / self.probe_length * 100
+
+            if cg_perc > 30:
+                self.cg_count += 1
+                test_count += 1
+
+                # Zoek naar 4-nuc-mono-repeats
+                nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
+                nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
+
+                if not re.search(nuc_mono_repeat, cur_probe):
+                    mono_time_list.append(time.time()-start_time)
+                    # Zoek naar 3-nuc-di-repeats
+                    start_time = time.time()
+                    if not re.search(nuc_di_repeat, cur_probe):
+
+                        # Pak alleen het gebied na 5(hairpin sequentie) + 3(gap)
+                        hairpin_domain = cur_probe[8:]
+                        hairpin_bool = False
+                        di_time_list.append(time.time()-start_time)
+                        # Pak alle mogelijke sequenties van 5 in hairpin_domain
+                        start_time = time.time()
+                        for y in range(0, len(hairpin_domain)-5):
+                            hairpin_seq = hairpin_domain[y:y+5]
+
+                            # Maak de sequenties reverse complement
+                            hairpin_seq_rev_com = hairpin_seq.translate(self.trans_table)[::-1]
+
+                            # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
+                            if hairpin_seq_rev_com in cur_probe[:y+5]:
+                                gene.hairpin_count += 1
+                                self.hairpin_count += 1
+                                hairpin_bool = True
+                                break
+
+                        hairpin_time_list.append(time.time()-start_time)
+
+                        if not hairpin_bool:
+                            # tel 10 locatie op als geschikte probe is gevonden en construct probe object
+                            i += self.coverage
+                            gene.probe_count += 1
+                            self.probe_count += 1
+                            fraction = (i+1) / len(gene.exon_seqs)
+
+                            probes.append(Probes(i, cur_probe, fraction))
+
+                    else:
+                        self.di_count += 1
+                        gene.di_count += 1
+                        mono_time_list.append(time.time()-start_time)
+                else:
+                    self.mono_count += 1
+                    gene.mono_count += 1
+                    mono_time_list.append(time.time()-start_time)
 
             i += 1
 
@@ -134,9 +145,13 @@ def main():
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
 
+    print(prober.probe_count)
+    print(prober.cg_count)
+
     # open a DB connection
     database = database_functions.Database()
     database.open_connection()
+    database.set_globals(True)
 
     # set data to DB
     database.set_probe_experiment(prober)
@@ -150,6 +165,7 @@ def main():
         print('Genes set to DB:', chromosome.chromosome_id)
         print('Probes set to DB:', chromosome.chromosome_id)
 
+    database.set_globals(False)
     database.close_connection()
 
     print(time.time()-start_time)

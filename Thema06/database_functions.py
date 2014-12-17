@@ -2,7 +2,7 @@
 import pymysql
 import re
 import prober
-from genbank_parser import Gene, Chromosome
+from genbank_parser import Gene, Chromosome, FastaWriter
 import time
 
 
@@ -49,6 +49,12 @@ class Database:
         self.conn.commit()
         self.cur.close()
         self.conn.close()
+
+    def set_globals(self, bool):
+        if bool:
+            self.cur.execute('SET autocommit = 0')
+        else:
+            self.cur.execute('SET autocommit = 1')
 
     def set_chromosome(self, chromosome_obj):
         # Use only first two words in organism name for database entry (not bullet proof)
@@ -125,6 +131,8 @@ class Database:
                                                                     prober.id,
                                                                     probe.sequence,
                                                                     probe.fraction))
+            probe.probe_id = self.conn.insert_id()
+
         self.cur.execute('INSERT INTO th6_experiment_genes ('
                          'th6_gene_id, '
                          'th6_probe_experiment_id, '
@@ -167,13 +175,20 @@ if __name__ == '__main__':
     db = Database()
     db.open_connection()
 
+    fastawriter = FastaWriter()
+
+    probe_list = list()
+
     chromosomes = db.get_chromomes()
     for chrom in chromosomes:
         db.get_genes(chrom)
-
-    for chrom in chromosomes:
         for gen in chrom.genes:
             db.get_probes(gen)
+
+    for chrom in chromosomes:
+        probe_list.append(fastawriter.get_probe_string(chrom.genes))
+
+    fastawriter.write_list(probe_list)
 
     db.close_connection()
 

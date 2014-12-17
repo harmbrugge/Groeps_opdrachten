@@ -254,17 +254,16 @@ class FastaWriter:
 
         # The creation of the filename .
         probe_list = list()
-        filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + genes[0].chromosome_id + '.fa'
+        # filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
+        filename = 'Probes_test.fa'
 
         for gene in genes:
 
             seq_to_write = list()
             for probe in gene.probes:
 
-                seq_to_write.append('>probe_'
+                seq_to_write.append('>'
                                     + str(probe.probe_id)
-                                    + '|' + str(gene.strand)
-                                    + '|' + str(gene.gene_id)
                                     + '\n')
                 seq_to_write.append(probe.sequence + '\n\n')
 
