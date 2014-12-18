@@ -55,7 +55,6 @@ class GenBank:
         :return: A chromosome object.
         """
 
-
         # The regex code that searches for the chromosome.
         definition = re.search('DEFINITION\s*(.*)\schromosome\s(\w+)', self.file_string)
 
@@ -71,14 +70,12 @@ class GenBank:
         organism = definition.group(1).replace(",", "")
         chromosome_id = definition.group(2)
 
-
         seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL)
 
         if seq is None:
             raise exceptions.ParseException()
 
         seq = seq.group(1)
-
         seq = re.sub('\n|\s|\d', '', seq).lower()
 
         self.chromosome = Chromosome(seq, chromosome_id, organism)
@@ -151,6 +148,7 @@ class GenBank:
                                   self.chromosome))
 
         self.genes = gene_list
+
         return self.genes
 
 
@@ -216,10 +214,8 @@ class FastaWriter:
 
         # The creation of the filename .
         gene_list = list()
-        filename = 'chromosome-' \
-                   + genes[0].chromosome_id \
-                   + '_' + genes[0].organism.replace(' ', '-')\
-                   + '_genes'
+        filename = ('Genes_chromosome-' + genes[0].chromosome_id
+                    + '_' + genes[0].organism.replace(' ', '-'))
 
         for gene in genes:
 
@@ -242,9 +238,8 @@ class FastaWriter:
     @staticmethod
     def get_chromosome_string(chromosome):
 
-        filename = 'chromosome_' \
-                   + str(chromosome.chromosome_id) \
-                   + '_' + str(chromosome.organism.replace(' ', '-'))
+        filename = ('Chromosome-' + str(chromosome.chromosome_id)
+                    + '_' + str(chromosome.organism.replace(' ', '-')))
 
         # Creation of the fasta id.
         fasta_id = '>chromosome_' + str(chromosome.chromosome_id) + '|' + str(chromosome.organism) + '\n'
@@ -263,7 +258,7 @@ class FastaWriter:
 
         # The creation of the filename .
         probe_list = list()
-        # filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
+        #filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
         filename = 'Probes_test.fa'
 
         for gene in genes:
@@ -281,43 +276,28 @@ class FastaWriter:
         return [''.join(probe_list), filename]
 
     @staticmethod
-    def write(string, output_dir='file/'):
+    def write(data, output_dir='file/'):
         """
         This method creates the gene fasta file
-        :param string: A string representation of a .fasta file
+        :param data: A data representation of a .fasta file
         :param output_dir: The path of the output dir
         """
         # The creation of the filename .
-        filename = output_dir + string[1]
+        filename = output_dir + data[1]
 
         if os.path.exists(filename):
             print('An exception ouccurd: File:', filename, 'exists already!')
         else:
             # Open the file.
             file = open(filename, 'w')
-            file.write(string[0])
-            file.close()
 
-        return filename
+            if type(data) == list:
+                list_to_write = []
+                for item in list_to_write:
+                    file.write(item[0] + '\n\n')
+            elif type(data) == str:
 
-    @staticmethod
-    def write_list(list_to_write, output_dir='file/'):
-        """
-        This method creates the gene fasta file
-        :param string: A string representation of a .fasta file
-        :param output_dir: The path of the output dir
-        """
-        # The creation of the filename .
-        filename = output_dir + list_to_write[0][1]
-
-        if os.path.exists(filename):
-            print('An exception ouccurd: File:', filename, 'exists already!')
-
-        else:
-            # Open the file.
-            file = open(filename, 'w')
-            for item in list_to_write:
-                file.write(item[0] + '\n\n')
+                file.write(data[0])
             file.close()
 
         return filename
