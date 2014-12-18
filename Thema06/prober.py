@@ -21,28 +21,27 @@ class Prober:
 
         self.trans_table = str.maketrans("atcg", "tagc")
 
-        self.possible_probe_count = 0
-        self.probe_count = 0
-        self.mono_count = 0
-        self.di_count = 0
-        self.hairpin_count = 0
-        self.gc_count = 0
-        self.time_total = 0
-
     def make_probes(self, gene):
 
-        start_time_total = time.time()
         i = 0
+        start_time_total = time.time()
         mono_time_list = []
         di_time_list = []
         hairpin_time_list = []
         gc_time_list = []
+
+        possible_probe_count = 0
+        probe_count = 0
+        mono_count = 0
+        di_count = 0
+        hairpin_count = 0
+        gc_count = 0
+
         probes = list()
 
         while i < len(gene.exon_seqs) - self.probe_length:
-            gene.possible_probe_count += 1
-            self.possible_probe_count += 1
 
+            possible_probe_count += 1
             cur_probe = gene.exon_seqs[i:i+self.probe_length]
             start_time = time.time()
 
@@ -57,6 +56,7 @@ class Prober:
             if cur_gc_perc > self.min_gc_percentage:
                 gc_time_list.append(time.time() - start_time)
                 start_time = time.time()
+
                 # Zoek naar 4-nuc-mono-repeats
                 nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
                 nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
@@ -85,8 +85,7 @@ class Prober:
                             # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
                             if hairpin_seq_rev_com in cur_probe[:y+5]:
 
-                                gene.hairpin_count += 1
-                                self.hairpin_count += 1
+                                hairpin_count += 1
                                 hairpin_bool = True
                                 break
 
@@ -97,33 +96,36 @@ class Prober:
                             i += self.coverage
 
                             gene.probe_count += 1
-                            self.probe_count += 1
+                            probe_count += 1
                             fraction = (i+1) / len(gene.exon_seqs)
 
                             probes.append(Probes(i, cur_probe, fraction, cur_gc_perc))
 
                     else:
-                        self.di_count += 1
-                        gene.di_count += 1
+                        di_count += 1
                         di_time_list.append(time.time()-start_time)
                 else:
-                    self.mono_count += 1
-                    gene.mono_count += 1
+                    mono_count += 1
                     mono_time_list.append(time.time()-start_time)
             else:
-                self.gc_count += 1
-                gene.gc_count += 1
+                gc_count += 1
                 gc_time_list.append(time.time() - start_time)
 
             i += 1
 
+        # TODO Figure out a proper way to set these
         gene.time_mono = sum(mono_time_list)
         gene.time_di = sum(di_time_list)
         gene.time_haipin = sum(hairpin_time_list)
         gene.time_gc = sum(gc_time_list)
         gene.time_total = time.time() - start_time_total
 
-        self.time_total += time.time() - start_time_total
+        gene.possible_probe_count = possible_probe_count
+        gene.probe_count = probe_count
+        gene.mono_count = mono_count
+        gene.di_count = di_count
+        gene.hairpin_count = hairpin_count
+        gene.gc_count = gc_count
 
         return probes
 
@@ -139,13 +141,13 @@ class Probes:
 
 
 def main():
-    start_time = time.time()
 
+    # Set the settings for probe creation
     nr_nuc_mono_repeat = 3
     nr_nuc_di_repeat = 2
     probe_length = 20
-    coverage = 5
-    min_gc_percentage = 30
+    coverage = 2
+    min_gc_percentage = 20
 
     prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
                     nr_nuc_mono_repeat=nr_nuc_mono_repeat,
@@ -156,37 +158,31 @@ def main():
     chromosome_list = list()
 
     # loop over gbk files genbank dir
-    for file in glob.glob(os.path.join('genbank_files/Plasmodium/corrupt', '*.gbk')):
+    for file in glob.glob(os.path.join('genbank_files/Plasmodium/', '*.gbk')):
         # read genbank file
 
         try:
             genbank = genbank_parser.GenBank(filename=file)
-
         except exceptions.ParseException:
-            print(exceptions.ParseException('bleugh'))
+            print("something went wrong in the creation of the genbank obj")
             exit(-1)
 
         try:
             chromosome = genbank.make_chromosome()
-
         except exceptions.ParseException:
-            print(exceptions.ParseException('Blooo'))
+            print("something went wrong in the creation of the chromosome obj")
             exit(-1)
 
         try:
             chromosome.genes = genbank.make_genes()
-
         except exceptions.ParseException:
-            print(exceptions.ParseException('BLA'))
+            print("something went wrong in the creation of the gene obj")
             exit(-1)
-
 
         for gene in chromosome.genes:
             gene.probes = prober.make_probes(gene)
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
-
-    print(prober.probe_count)
 
     # open a DB connection
     database = database_functions.Database()
@@ -207,8 +203,6 @@ def main():
 
     database.set_globals(True)
     database.close_connection()
-
-    print(time.time()-start_time)
 
 
 if __name__ == '__main__':

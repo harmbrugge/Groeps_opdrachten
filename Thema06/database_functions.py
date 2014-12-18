@@ -50,14 +50,14 @@ class Database:
         self.cur.close()
         self.conn.close()
 
-    def set_globals(self, bool):
+    def set_globals(self, check_bool):
         """
         Used for major import operations.
-        :param bool:
+        :param check_bool:
         :return:
         """
 
-        if bool:
+        if check_bool:
             self.cur.execute('SET autocommit = 1')
             self.cur.execute('SET foreign_key_checks = 1;')
             self.cur.execute('SET unique_checks=1;')
@@ -67,6 +67,7 @@ class Database:
             self.cur.execute('SET unique_checks=0;')
 
     def set_chromosome(self, chromosome_obj):
+
         # Use only first two words in organism name for database entry (not bullet proof)
         chromosome_obj.organism = re.search('([^\s]+\s+[^\s]+)', chromosome_obj.organism).group(1)
 
@@ -82,16 +83,16 @@ class Database:
             chromosome_obj.organism_id = self.conn.insert_id()
 
         # Insert chromsome into to DB
-        self.cur.execute('INSERT INTO th6_chromosome (organism_id, organism, chromosome_def) '
+        self.cur.execute('INSERT INTO th6_chromosomes (organism_id, organism, chromosome_def) '
                          'VALUES ("{0}", "{1}", "{2}");'.format(chromosome_obj.organism_id,
                                                                 chromosome_obj.organism,
                                                                 chromosome_obj.chromosome_id))
-        # self.conn.commit()
+
         chromosome_obj.chromosome_id = self.conn.insert_id()
 
     def set_gene(self, gene_obj, chromosome_id):
 
-        self.cur.execute('INSERT INTO th6_gene (chromosome_id,'
+        self.cur.execute('INSERT INTO th6_genes (chromosome_id,'
                          'external_id,'
                          'sequence,'
                          'strand,'
@@ -105,55 +106,42 @@ class Database:
                                                                                      gene_obj.protein_id))
         gene_obj.db_id = self.conn.insert_id()
 
-        # self.conn.commit()
-    def set_probe_experiment(self, prober):
-        self.cur.execute(
-            'INSERT INTO th6_probe_experiment '
-            '(date, '
-            'set_mono_repeat, '
-            'set_di_repeat, '
-            'set_coverage, '
-            'set_probe_len, '
-            'count_mono_repeat, '
-            'count_di_repeat, '
-            'count_hairpin,'
-            'count_possible,'
-            'count_total,'
-            'count_gc,'
-            'time_total) '
-            'VALUES (NULL, {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10})'.format(prober.nr_nuc_mono_repeat,
-                                                                                prober.nr_nuc_di_repeat,
-                                                                                prober.coverage,
-                                                                                prober.probe_length,
-                                                                                prober.mono_count,
-                                                                                prober.di_count,
-                                                                                prober.hairpin_count,
-                                                                                prober.possible_probe_count,
-                                                                                prober.probe_count,
-                                                                                prober.gc_count,
-                                                                                prober.time_total))
-        # get the inserted primary key, needed for fk oligo table
-        prober.id = self.conn.insert_id()
+    def set_probe_experiment(self, prober_obj):
 
-    def set_probes(self, prober, gene):
+        self.cur.execute('INSERT INTO th6_experiment_settings'
+                         '(date, '
+                         'set_mono_repeat, '
+                         'set_di_repeat, '
+                         'set_coverage, '
+                         'set_probe_len,'
+                         'set_min_gc_perc) '
+                         'VALUES (NULL, {0}, {1}, {2}, {3}, {4})'.format(prober_obj.nr_nuc_mono_repeat,
+                                                                         prober_obj.nr_nuc_di_repeat,
+                                                                         prober_obj.coverage,
+                                                                         prober_obj.probe_length,
+                                                                         prober_obj.min_gc_percentage))
+        # get the inserted primary key, needed for fk oligo table
+        prober_obj.id = self.conn.insert_id()
+
+    def set_probes(self, prober_obj, gene):
 
         for probe in gene.probes:
 
-            self.cur.execute('INSERT INTO th6_oligo (gene_id, '
-                             'probe_experiment_id, '
+            self.cur.execute('INSERT INTO th6_oligos (gene_id, '
+                             'experiment_id, '
                              'sequence, '
                              'fraction,'
                              'cg_perc) '
                              'VALUES ({0}, {1}, "{2}", {3}, {4})'.format(gene.db_id,
-                                                                    prober.id,
-                                                                    probe.sequence,
-                                                                    probe.fraction,
-                                                                    probe.gc_perc))
+                                                                         prober_obj.id,
+                                                                         probe.sequence,
+                                                                         probe.fraction,
+                                                                         probe.gc_perc))
             probe.probe_id = self.conn.insert_id()
 
-        self.cur.execute('INSERT INTO th6_experiment_genes ('
-                         'th6_gene_id, '
-                         'th6_probe_experiment_id, '
+        self.cur.execute('INSERT INTO th6_gene_experiment_data ('
+                         'gene_id, '
+                         'experiment_id, '
                          'count_mono_repeat, '
                          'count_di_repeat, '
                          'count_hairpin, '
@@ -165,22 +153,24 @@ class Database:
                          'time_hairpin,'
                          'time_total,'
                          'time_gc) '
-                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12})'.format(gene.db_id,
-                                                                             prober.id,
-                                                                             gene.mono_count,
-                                                                             gene.di_count,
-                                                                             gene.hairpin_count,
-                                                                             gene.possible_probe_count,
-                                                                             gene.probe_count,
-                                                                             gene.gc_count,
-                                                                             gene.time_mono,
-                                                                             gene.time_di,
-                                                                             gene.time_hairpin,
-                                                                             gene.time_total,
-                                                                             gene.time_gc))
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, '
+                         '{7}, {8}, {9}, {10}, {11}, {12})'.format(gene.db_id,
+                                                                   prober_obj.id,
+                                                                   gene.mono_count,
+                                                                   gene.di_count,
+                                                                   gene.hairpin_count,
+                                                                   gene.possible_probe_count,
+                                                                   gene.probe_count,
+                                                                   gene.gc_count,
+                                                                   gene.time_mono,
+                                                                   gene.time_di,
+                                                                   gene.time_hairpin,
+                                                                   gene.time_total,
+                                                                   gene.time_gc))
 
     def get_chromomes(self):
-        self.cur.execute('SELECT * FROM th6_chromosome')
+
+        self.cur.execute('SELECT * FROM th6_chromosomes')
         chromosome_list = list()
 
         for row in self.cur.fetchall():
@@ -189,15 +179,18 @@ class Database:
         return chromosome_list
 
     def get_genes(self, chromosome):
-        self.cur.execute('SELECT * FROM th6_gene WHERE chromosome_id = "{0}"'.format(chromosome.chromosome_id))
+
+        self.cur.execute('SELECT * FROM th6_genes WHERE chromosome_id = "{0}"'.format(chromosome.chromosome_id))
         for row in self.cur.fetchall():
             chromosome.genes.append(Gene(row[0], row[6], None, row[3], row[7], row[8], chromosome))
 
     def get_probes(self, gene):
-        self.cur.execute('SELECT * FROM th6_oligo WHERE gene_id = "{0}"'.format(gene.gene_id))
+
+        self.cur.execute('SELECT * FROM th6_oligos WHERE gene_id = "{0}"'.format(gene.gene_id))
         for row in self.cur.fetchall():
             pass
             gene.probes.append(prober.Probes(row[0], row[3], row[6]))
+
 
 if __name__ == '__main__':
     start_time = time.time()
