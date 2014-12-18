@@ -55,6 +55,7 @@ class GenBank:
         :return: A chromosome object.
         """
 
+
         # The regex code that searches for the chromosome.
         definition = re.search('DEFINITION\s*(.*)\schromosome\s(\w+)', self.file_string)
 
@@ -64,17 +65,17 @@ class GenBank:
             # If  mitochondrion is present.
             definition = re.search('DEFINITION\s*(.*)\s(mitochondrion)', self.file_string)
 
-            if not definition:
-                raise exceptions.ParseException('No, or invalid "DEFINITION" found in the genbank file: ' +
-                                                self.filename)
+            if definition is None:
+                raise exceptions.ParseException()
 
         organism = definition.group(1).replace(",", "")
         chromosome_id = definition.group(2)
 
+
         seq = re.search('ORIGIN(.*)//', self.file_string, re.DOTALL)
 
         if seq is None:
-            raise exceptions.ParseException('No sequence found in the genbank file: ' + self.filename)
+            raise exceptions.ParseException()
 
         seq = seq.group(1)
 
@@ -93,7 +94,7 @@ class GenBank:
         # The regex to get all of the coding DNA seqeunces.
         cds_info = re.findall('CDS(.+?)/translation', self.file_string, re.DOTALL)
         if len(cds_info) < 1:
-            raise exceptions.ParseException('No genes found in the genbank file: ' + self.filename)
+            raise exceptions.ParseException('No genes found in the genbank file: ')
 
         # Creates the dict for the creation of an reverse complement.
         trans_table = str.maketrans("atcg", "tagc")
@@ -104,13 +105,14 @@ class GenBank:
 
             # The regex to get all of the info from an cds.
             exon_seqs = list()
+
             exon_regions = re.findall('.(\d+)\.\.>?(\d+)', cur_cds, re.DOTALL)
             gene_id = re.search('/db_xref="GI:(\d*)', cur_cds)
             protein_id = re.search('/protein_id="(.*)"', cur_cds)
             protein_name = re.search('/product=(".+?")', cur_cds, re.DOTALL)
 
             if not all([exon_regions, gene_id, protein_id, protein_name]):
-                raise exceptions.ParseException('Invalid gene information in the genbank file: ' + self.filename)
+                raise exceptions.ParseException()
 
             gene_id = gene_id.group(1)
             protein_id = protein_id.group(1)

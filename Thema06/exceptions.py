@@ -5,10 +5,9 @@ class ParseException(Exception):
 
     def __init__(self, message):
         self.message = message
-        self.raise_modal()
 
     def __str__(self):
-        return 'ERROR: ParseException:' + self.message
+        return 'ERROR: ParseException: ' + self.message
 
     def raise_modal(self):
         print('<script type="text/javascript">')

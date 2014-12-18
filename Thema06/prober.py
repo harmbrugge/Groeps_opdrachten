@@ -5,6 +5,7 @@ import glob
 import os
 import database_functions
 import time
+import exceptions
 
 
 class Prober:
@@ -155,14 +156,31 @@ def main():
     chromosome_list = list()
 
     # loop over gbk files genbank dir
-    for file in glob.glob(os.path.join('genbank_files/Plasmodium', '*.gbk')):
+    for file in glob.glob(os.path.join('genbank_files/Plasmodium/corrupt', '*.gbk')):
         # read genbank file
-        print(file)
-        genbank = genbank_parser.GenBank(filename=file)
 
-        # make chromsome, gene & probe objects
-        chromosome = genbank.make_chromosome()
-        chromosome.genes = genbank.make_genes()
+        try:
+            genbank = genbank_parser.GenBank(filename=file)
+
+        except exceptions.ParseException:
+            print(exceptions.ParseException('bleugh'))
+            exit(-1)
+
+        try:
+            chromosome = genbank.make_chromosome()
+
+        except exceptions.ParseException:
+            print(exceptions.ParseException('Blooo'))
+            exit(-1)
+
+        try:
+            chromosome.genes = genbank.make_genes()
+
+        except exceptions.ParseException:
+            print(exceptions.ParseException('BLA'))
+            exit(-1)
+
+
         for gene in chromosome.genes:
             gene.probes = prober.make_probes(gene)
         chromosome_list.append(chromosome)
