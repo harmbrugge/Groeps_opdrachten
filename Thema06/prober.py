@@ -62,14 +62,14 @@ class Prober:
                 nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
 
                 mono_search = re.search(nuc_mono_repeat, cur_probe)
-
                 if not mono_search:
 
                     mono_time_list.append(time.time()-start_time)
                     # Zoek naar 3-nuc-di-repeats
                     start_time = time.time()
 
-                    if not re.search(nuc_di_repeat, cur_probe):
+                    di_search = re.search(nuc_di_repeat, cur_probe)
+                    if not di_search:
 
                         # Pak alleen het gebied na 5(hairpin sequentie) + 3(gap)
                         hairpin_domain = cur_probe[8:]
@@ -104,7 +104,9 @@ class Prober:
                             probes.append(Probes(i, cur_probe, fraction, cur_gc_perc))
 
                     else:
-                        di_count += 1
+                        i += di_search.span()[0]
+                        # testen of deze count klopt of +1 moet zijn
+                        di_count += di_search.span()[0]
                         di_time_list.append(time.time()-start_time)
                 else:
                     i += mono_search.span()[0]
@@ -188,6 +190,7 @@ def main():
             gene.probes = prober.make_probes(gene)
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
+        break
 
     # # open a DB connection
     # database = database_functions.Database()
