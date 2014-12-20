@@ -61,7 +61,9 @@ class Prober:
                 nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
                 nuc_di_repeat = '(\w{2,3})\\1{' + str(self.nr_nuc_di_repeat) + '}'
 
-                if not re.search(nuc_mono_repeat, cur_probe):
+                mono_search = re.search(nuc_mono_repeat, cur_probe)
+
+                if not mono_search:
 
                     mono_time_list.append(time.time()-start_time)
                     # Zoek naar 3-nuc-di-repeats
@@ -105,7 +107,9 @@ class Prober:
                         di_count += 1
                         di_time_list.append(time.time()-start_time)
                 else:
-                    mono_count += 1
+                    i += mono_search.span()[0]
+                    # testen of deze count klopt of +1 moet zijn
+                    mono_count += mono_search.span()[0]
                     mono_time_list.append(time.time()-start_time)
             else:
                 gc_count += 1
@@ -141,6 +145,7 @@ class Probes:
 
 
 def main():
+    start_time = time.time()
 
     # Set the settings for probe creation
     nr_nuc_mono_repeat = 3
@@ -184,25 +189,27 @@ def main():
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
 
-    # open a DB connection
-    database = database_functions.Database()
-    database.open_connection()
-    database.set_globals(False)
+    # # open a DB connection
+    # database = database_functions.Database()
+    # database.open_connection()
+    # database.set_globals(False)
+    #
+    # # set data to DB
+    # database.set_probe_experiment(prober)
+    # for chromosome in chromosome_list:
+    #     database.set_chromosome(chromosome)
+    #     print('Chromosome set to DB:', chromosome.chromosome_id)
+    #
+    #     for gene in chromosome.genes:
+    #         database.set_gene(gene, chromosome.chromosome_id)
+    #         database.set_probes(prober, gene)
+    #     print('Genes set to DB:', chromosome.chromosome_id)
+    #     print('Probes set to DB:', chromosome.chromosome_id)
+    #
+    # database.set_globals(True)
+    # database.close_connection()
 
-    # set data to DB
-    database.set_probe_experiment(prober)
-    for chromosome in chromosome_list:
-        database.set_chromosome(chromosome)
-        print('Chromosome set to DB:', chromosome.chromosome_id)
-
-        for gene in chromosome.genes:
-            database.set_gene(gene, chromosome.chromosome_id)
-            database.set_probes(prober, gene)
-        print('Genes set to DB:', chromosome.chromosome_id)
-        print('Probes set to DB:', chromosome.chromosome_id)
-
-    database.set_globals(True)
-    database.close_connection()
+    print(time.time()-start_time)
 
 
 if __name__ == '__main__':
