@@ -102,16 +102,41 @@ class Prober:
                             fraction = (i+1) / len(gene.exon_seqs)
 
                             probes.append(Probes(i, cur_probe, fraction, cur_gc_perc))
-
                     else:
-                        i += di_search.span()[0]
+                        di_repeat_positions = di_search.span()
+                        i += di_repeat_positions[0]
+                        # di_repeat_positions = di_search.span()
+                        # repeat_len = di_repeat_positions[1] - di_repeat_positions[0]
+                        # if not repeat_len % 3:
+                        #
+                        #     repeat_count = (repeat_len/3) - self.nr_nuc_di_repeat
+                        #
+                        #     if repeat_count > 0:
+                        #         skip_value = (di_repeat_positions[0] + repeat_count*3)
+                        #     else:
+                        #         skip_value = (di_repeat_positions[0] + 3)
+                        #     i += int(skip_value)
+                        #
+                        # elif not repeat_len % 2:
+                        #
+                        #     repeat_count = (repeat_len/2) - self.nr_nuc_di_repeat
+                        #     if repeat_count > 0:
+                        #         skip_value = (di_repeat_positions[0] + repeat_count*2)
+                        #     else:
+                        #         skip_value = (di_repeat_positions[0] + 2)
+                        #
+                        #     i += int(skip_value)
+
                         # testen of deze count klopt of +1 moet zijn
-                        di_count += di_search.span()[0]
+                        di_count += di_repeat_positions[0]
                         di_time_list.append(time.time()-start_time)
                 else:
-                    i += mono_search.span()[0]
+                    mono_repeat_positions = mono_search.span()
+                    #i += mono_repeat_positions[0]
+                    skip_value = mono_repeat_positions[1] - self.nr_nuc_mono_repeat
+                    i += (skip_value-1)
                     # testen of deze count klopt of +1 moet zijn
-                    mono_count += mono_search.span()[0]
+                    mono_count += mono_repeat_positions[0]
                     mono_time_list.append(time.time()-start_time)
             else:
                 gc_count += 1
@@ -185,11 +210,13 @@ def main():
         except exceptions.ParseException:
             print("something went wrong in the creation of the gene obj")
             exit(-1)
-
+        p_list = []
         for gene in chromosome.genes:
             gene.probes = prober.make_probes(gene)
+            p_list.append(len(gene.probes))
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
+        print(sum(p_list))
         break
 
     # # open a DB connection

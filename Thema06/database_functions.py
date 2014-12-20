@@ -94,16 +94,15 @@ class Database:
 
         self.cur.execute('INSERT INTO th6_genes (chromosome_id,'
                          'external_id,'
-                         'sequence,'
                          'strand,'
                          'protein,'
                          'protein_id)'
-                         'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}", "{5}");'.format(chromosome_id,
+                         'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}");'.format(chromosome_id,
                                                                                      gene_obj.gene_id,
-                                                                                     gene_obj.exon_seqs,
                                                                                      gene_obj.strand,
                                                                                      gene_obj.protein,
                                                                                      gene_obj.protein_id))
+        # Removed the seqeunce for testing
         gene_obj.db_id = self.conn.insert_id()
 
     def set_probe_experiment(self, prober_obj):
@@ -168,6 +167,12 @@ class Database:
                                                                    gene.time_hairpin,
                                                                    gene.time_total,
                                                                    gene.time_gc))
+
+    def start_transaction(self):
+        self.cur.execute('start transaction;')
+
+    def commit(self):
+        self.cur.execute('commit;')
 
     def get_chromomes(self):
 
@@ -236,3 +241,4 @@ if __name__ == '__main__':
     print(time.time()-start_time)
 
 # C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py
+# 25, 55 min elegans 20% gc framskip 2 no transaction
