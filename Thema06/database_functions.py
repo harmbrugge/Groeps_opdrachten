@@ -137,6 +137,7 @@ class Database:
                                                                          probe.sequence,
                                                                          probe.fraction,
                                                                          probe.gc_perc))
+            # Het pakken van de inserted primary key's kost veel tijd!
             probe.probe_id = self.conn.insert_id()
 
         self.cur.execute('INSERT INTO th6_gene_experiment_data ('
@@ -188,8 +189,7 @@ class Database:
 
         self.cur.execute('SELECT * FROM th6_oligos WHERE gene_id = "{0}"'.format(gene.gene_id))
         for row in self.cur.fetchall():
-            pass
-            gene.probes.append(prober.Probes(row[0], row[3], row[6]))
+            gene.probes.append(prober.Probes(row[0], row[3], row[6], row[4]))
 
 
 if __name__ == '__main__':
@@ -197,22 +197,40 @@ if __name__ == '__main__':
 
     db = Database()
     db.open_connection()
+    db.set_globals(False)
 
-    fastawriter = FastaWriter()
+    # fastawriter = FastaWriter()
 
     probe_list = list()
 
     chromosomes = db.get_chromomes()
     for chrom in chromosomes:
         db.get_genes(chrom)
-        for gen in chrom.genes:
-            db.get_probes(gen)
+        # for gen in chrom.genes:
+        #     db.get_probes(gen)
+
+    # for chrom in chromosomes:
+    #     probe_list.append(fastawriter.get_probe_string(chrom.genes))
+
+    # fastawriter.write_list(probe_list)
+
+    # Set the settings for probe creation
+    prober = prober.Prober(nr_nuc_di_repeat=2,
+                           nr_nuc_mono_repeat=3,
+                           probe_length=20,
+                           coverage=10,
+                           min_gc_percentage=50)
+
+    db.set_probe_experiment(prober)
 
     for chrom in chromosomes:
-        probe_list.append(fastawriter.get_probe_string(chrom.genes))
+        for gene in chrom.genes:
+            gene.probes = prober.make_probes(gene)
+            db.set_probes(prober, gene)
 
-    fastawriter.write_list(probe_list)
+        print('Done with chromosome:', chrom.chromosome_id)
 
+    db.set_globals(True)
     db.close_connection()
 
     print(time.time()-start_time)

@@ -193,7 +193,7 @@ def main():
     database.set_probe_experiment(prober)
     for chromosome in chromosome_list:
         database.set_chromosome(chromosome)
-        print('Chromsome set to DB:', chromosome.chromosome_id)
+        print('Chromosome set to DB:', chromosome.chromosome_id)
 
         for gene in chromosome.genes:
             database.set_gene(gene, chromosome.chromosome_id)
