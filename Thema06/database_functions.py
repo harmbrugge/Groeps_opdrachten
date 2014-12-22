@@ -130,12 +130,14 @@ class Database:
                              'experiment_id, '
                              'sequence, '
                              'fraction,'
-                             'cg_perc) '
-                             'VALUES ({0}, {1}, "{2}", {3}, {4})'.format(gene.db_id,
-                                                                         prober_obj.id,
-                                                                         probe.sequence,
-                                                                         probe.fraction,
-                                                                         probe.gc_perc))
+                             'cg_perc,'
+                             'temp_melt) '
+                             'VALUES ({0}, {1}, "{2}", {3}, {4}, {5})'.format(gene.db_id,
+                                                                              prober_obj.id,
+                                                                              probe.sequence,
+                                                                              probe.fraction,
+                                                                              probe.gc_perc,
+                                                                              probe.temp_melt))
             # Het pakken van de inserted primary key's kost veel tijd!
             probe.probe_id = self.conn.insert_id()
 
@@ -170,8 +172,11 @@ class Database:
 
     def set_valid_probes_from_blast(self):
 
-        self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id in (SELECT oligo_id FROM th6_blasted_oligos'
-                         'WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1);')
+        self.cur.execute('SELECT oligo_id FROM th6_blasted_oligos '
+                         'WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1')
+
+        for row in self.cur.fetchall():
+            self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id = "{0}"'.format(row[0]))
 
     def start_transaction(self):
         self.cur.execute('start transaction;')
@@ -228,7 +233,7 @@ if __name__ == '__main__':
     prober = prober.Prober(nr_nuc_di_repeat=2,
                            nr_nuc_mono_repeat=3,
                            probe_length=20,
-                           coverage=10,
+                           nucleotide_frame_skip=10,
                            min_gc_percentage=50)
 
     db.set_probe_experiment(prober)

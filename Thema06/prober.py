@@ -10,12 +10,16 @@ import exceptions
 
 class Prober:
 
-    def __init__(self, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10, min_gc_percentage=50):
+    def __init__(self, nr_nuc_mono_repeat=3,
+                 nr_nuc_di_repeat=2,
+                 probe_length=20,
+                 nucleotide_frame_skip=2,
+                 min_gc_percentage=50):
 
         self.nr_nuc_mono_repeat = nr_nuc_mono_repeat
         self.nr_nuc_di_repeat = nr_nuc_di_repeat
         self.probe_length = probe_length
-        self.coverage = coverage
+        self.nucleotide_frame_skip = nucleotide_frame_skip
         self.min_gc_percentage = min_gc_percentage
         self.id = None
 
@@ -45,13 +49,15 @@ class Prober:
             cur_probe = gene.exon_seqs[i:i+self.probe_length]
             start_time = time.time()
 
-            cur_gc_count = cur_probe.count('c')
-            cur_gc_count += cur_probe.count('g')
+            cur_c_count = cur_probe.count('c')
+            cur_g_count = cur_probe.count('g')
+            cur_a_count = cur_probe.count('a')
+            cur_t_count = cur_probe.count('t')
 
-            if cur_gc_count == 0:
+            if cur_g_count == 0 and cur_c_count == 0:
                 cur_gc_perc = 0
             else:
-                cur_gc_perc = cur_gc_count / self.probe_length * 100
+                cur_gc_perc = (cur_c_count + cur_g_count) / self.probe_length * 100
 
             if cur_gc_perc > self.min_gc_percentage:
                 gc_time_list.append(time.time() - start_time)
@@ -95,13 +101,19 @@ class Prober:
 
                         if not hairpin_bool:
                             # tel x bij de locatie op als geschikte probe is gevonden en construct probe object
-                            i += self.coverage
+                            i += self.nucleotide_frame_skip
 
                             gene.probe_count += 1
                             probe_count += 1
                             fraction = (i+1) / len(gene.exon_seqs)
 
-                            probes.append(Probes(i, cur_probe, fraction, cur_gc_perc))
+                            # Bepaling metlting temp (naive approach) niet accurate bij oligo nucs > 20
+                            cur_tm = round((64.9 + 41 * (cur_g_count+cur_c_count-16.4)/(cur_a_count +
+                                                                                        cur_t_count +
+                                                                                        cur_g_count +
+                                                                                        cur_c_count)), 3)
+
+                            probes.append(Probes(i, cur_probe, fraction, cur_gc_perc, cur_tm))
                     else:
                         di_repeat_positions = di_search.span()
                         i += di_repeat_positions[0]
@@ -139,12 +151,12 @@ class Prober:
 
 class Probes:
 
-    def __init__(self, probe_id, sequence, fraction, gc_perc):
+    def __init__(self, probe_id, sequence, fraction, gc_perc, melting_temp):
         self.probe_id = probe_id
         self.sequence = sequence
         self.fraction = fraction
         self.gc_perc = gc_perc
-        self.temp_melt = None
+        self.temp_melt = melting_temp
 
 
 def main():
@@ -154,13 +166,13 @@ def main():
     nr_nuc_mono_repeat = 3
     nr_nuc_di_repeat = 2
     probe_length = 20
-    coverage = 2
+    nucleotide_frame_skip = 0
     min_gc_percentage = 20
 
     prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
                     nr_nuc_mono_repeat=nr_nuc_mono_repeat,
                     probe_length=probe_length,
-                    coverage=coverage,
+                    nucleotide_frame_skip=nucleotide_frame_skip,
                     min_gc_percentage=min_gc_percentage)
 
     chromosome_list = list()
@@ -192,28 +204,26 @@ def main():
             p_list.append(len(gene.probes))
         chromosome_list.append(chromosome)
         print('Done with chromsome:', chromosome.chromosome_id)
-        print(sum(p_list))
 
+    # open a DB connection
+    database = database_functions.Database()
+    database.open_connection()
+    database.set_globals(False)
 
-    # # open a DB connection
-    # database = database_functions.Database()
-    # database.open_connection()
-    # database.set_globals(False)
-    #
-    # # set data to DB
-    # database.set_probe_experiment(prober)
-    # for chromosome in chromosome_list:
-    #     database.set_chromosome(chromosome)
-    #     print('Chromosome set to DB:', chromosome.chromosome_id)
-    #
-    #     for gene in chromosome.genes:
-    #         database.set_gene(gene, chromosome.chromosome_id)
-    #         database.set_probes(prober, gene)
-    #     print('Genes set to DB:', chromosome.chromosome_id)
-    #     print('Probes set to DB:', chromosome.chromosome_id)
-    #
-    # database.set_globals(True)
-    # database.close_connection()
+    # set data to DB
+    database.set_probe_experiment(prober)
+    for chromosome in chromosome_list:
+        database.set_chromosome(chromosome)
+        print('Chromosome set to DB:', chromosome.chromosome_id)
+
+        for gene in chromosome.genes:
+            database.set_gene(gene, chromosome.chromosome_id)
+            database.set_probes(prober, gene)
+        print('Genes set to DB:', chromosome.chromosome_id)
+        print('Probes set to DB:', chromosome.chromosome_id)
+
+    database.set_globals(True)
+    database.close_connection()
 
     print(time.time()-start_time)
 

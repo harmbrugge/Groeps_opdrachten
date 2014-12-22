@@ -50,7 +50,7 @@ class Forms:
 
     @staticmethod
     def parser_form():
-        #nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, coverage=10
+        #nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=10
 
         string = ('<form class="form" role="form" enctype="multipart/form-data" '
                   'action=web_interface.py method="post">'

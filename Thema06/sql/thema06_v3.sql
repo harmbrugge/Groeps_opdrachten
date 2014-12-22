@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS .`th6_oligos` (
   `cg_perc` DOUBLE NULL DEFAULT NULL,
   `temp_melt` DOUBLE NULL DEFAULT NULL,
   `fraction` DOUBLE NULL DEFAULT NULL,
+  `blast` BOOL DEFAULT FALSE,
   PRIMARY KEY (`id`),
   INDEX `fk_oligo_gene1` (`gene_id` ASC),
   INDEX `fk_oligo_probe_experiment1` (`experiment_id` ASC),
