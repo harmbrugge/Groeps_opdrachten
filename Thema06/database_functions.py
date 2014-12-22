@@ -168,6 +168,11 @@ class Database:
                                                                    gene.time_total,
                                                                    gene.time_gc))
 
+    def set_valid_probes_from_blast(self):
+
+        self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id in (SELECT oligo_id FROM th6_blasted_oligos'
+                         'WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1);')
+
     def start_transaction(self):
         self.cur.execute('start transaction;')
 
