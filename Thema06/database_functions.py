@@ -178,6 +178,73 @@ class Database:
         for row in self.cur.fetchall():
             self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id = "{0}"'.format(row[0]))
 
+    def set_benchmark_times(self, gene, cur_gb_id):
+
+        self.cur.execute('INSERT INTO th6_times ('
+                         'time_total,'
+                         'time_mono,'
+                         'time_di,'
+                         'time_hairpin,'
+                         'time_gc,'
+                         'genbank_id) '
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5})'.format(gene.time_total,
+                                                                   gene.time_mono,
+                                                                   gene.time_di,
+                                                                   gene.time_hairpin,
+                                                                   gene.time_gc,
+                                                                   cur_gb_id))
+
+    def set_benchmark_genbank(self, bench_id, filename, chromosome):
+
+        self.cur.execute('INSERT INTO th6_genbank ('
+                          'filename,'
+                          'chromosome,'
+                          'benchmarks_id)'
+                          'VALUES ("{0}", "{1}", {2})'.format(filename,
+                                                          chromosome,
+                                                          bench_id))
+
+        return self.conn.insert_id()
+
+    def set_benchmark_benchmarks(self, prober, inval_nuc_frame_skip, pc_id, comments=''):
+
+        self.cur.execute('INSERT INTO th6_benchmarks ('
+                         'comments,'
+                         'mono_rep,'
+                         'di_rep,'
+                         'probe_len,'
+                         'min_gc_perc,'
+                         'val_nuc_frame_skip,'
+                         'inval_nuc_frame_skip,'
+                         'computers_pc_id)'
+                         'VALUES ("{0}",{1},{2},{3},{4},{5},{6},{7})'.format(comments,
+                                                                            prober.nr_nuc_mono_repeat,
+                                                                            prober.nr_nuc_di_repeat,
+                                                                            prober.probe_length,
+                                                                            prober.min_gc_percentage,
+                                                                            prober.nucleotide_frame_skip,
+                                                                            inval_nuc_frame_skip,
+                                                                            pc_id))
+        return self.conn.insert_id()
+
+    def set_benchmark_computers(self, pc_name, proc_id, clockspeed, core_count, ram_size, arch):
+
+        self.cur.execute('INSERT INTO th6_computers ('
+                         'pc_name,'
+                         'proccessor_id,'
+                         'clockspeed,'
+                         'core_count,'
+                         'ram_size,'
+                         'arch)'
+                         'VALUES("{0}","{1}","{2}",{3},{4},"{5}")'.format(pc_name, proc_id, clockspeed, core_count, ram_size, arch))
+
+        return self.conn.insert_id()
+
+
+
+
+
+#chromosome_obj.chromosome_id = self.conn.insert_id()
     def start_transaction(self):
         self.cur.execute('start transaction;')
 
