@@ -178,7 +178,7 @@ class Database:
         for row in self.cur.fetchall():
             self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id = "{0}"'.format(row[0]))
 
-    def set_benchmark_times(self, gene, cur_gb_id):
+    def set_benchmark_times(self, gene, bench_id, gb_id):
 
         self.cur.execute('INSERT INTO th6_times ('
                          'time_total,'
@@ -186,35 +186,35 @@ class Database:
                          'time_di,'
                          'time_hairpin,'
                          'time_gc,'
-                         'genbank_id,'
                          'count_mono_repeat,'
                          'count_di_repeat,'
                          'count_hairpin,'
                          'count_possible,'
                          'count_total,'
-                         'count_gc)'
-                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11})'.format(gene.time_total,
+                         'count_gc,'
+                         'th6_benchmarks_id,'
+                         'th6_genbank_id)'
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12})'.format(gene.time_total,
                                                                    gene.time_mono,
                                                                    gene.time_di,
                                                                    gene.time_hairpin,
                                                                    gene.time_gc,
-                                                                   cur_gb_id,
                                                                    gene.mono_count,
                                                                    gene.di_count,
                                                                    gene.hairpin_count,
                                                                    gene.possible_probe_count,
                                                                    gene.probe_count,
-                                                                   gene.gc_count))
+                                                                   gene.gc_count,
+                                                                   bench_id,
+                                                                   gb_id))
 
-    def set_benchmark_genbank(self, bench_id, filename, chromosome):
+    def set_benchmark_genbank(self, filename, chromosome):
 
         self.cur.execute('INSERT INTO th6_genbank ('
                           'filename,'
-                          'chromosome,'
-                          'benchmarks_id)'
-                          'VALUES ("{0}", "{1}", {2})'.format(filename,
-                                                          chromosome,
-                                                          bench_id))
+                          'chromosome)'
+                          'VALUES ("{0}", "{1}")'.format(filename,
+                                                              chromosome))
 
         return self.conn.insert_id()
 
@@ -265,8 +265,16 @@ class Database:
                                                                           kernel_version))
         return self.conn.insert_id()
 
+    def get_benchmark_computers(self):
 
+        self.cur.execute('select id,pc_name from th6_computers;')
 
+        return self.cur.fetchall()
+
+    def get_benchmark_genbank(self, filename):
+
+        self.cur.execute('select id from th6_genbank where filename = "{0}";'.format(filename))
+        return self.cur.fetchone()
 
 
 #chromosome_obj.chromosome_id = self.conn.insert_id()
