@@ -20,10 +20,10 @@ class Prober:
 
         self.trans_table = str.maketrans("atcg", "tagc")
 
-    def make_probes(self, gene):
+    def make_probes(self, gene, skip_bool):
 
         i = 0
-        start_time_total = time.time()
+        start_time_total = time.clock()
         mono_time_list = []
         di_time_list = []
         hairpin_time_list = []
@@ -42,7 +42,7 @@ class Prober:
 
             possible_probe_count += 1
             cur_probe = gene.exon_seqs[i:i+self.probe_length]
-            start_time = time.time()
+            start_time = time.clock()
 
             cur_c_count = cur_probe.count('c')
             cur_g_count = cur_probe.count('g')
@@ -55,8 +55,8 @@ class Prober:
                 cur_gc_perc = (cur_c_count + cur_g_count) / self.probe_length * 100
 
             if cur_gc_perc > self.min_gc_percentage:
-                gc_time_list.append(time.time() - start_time)
-                start_time = time.time()
+                gc_time_list.append(time.clock() - start_time)
+                start_time = time.clock()
 
                 # Zoek naar 4-nuc-mono-repeats
                 nuc_mono_repeat = '(\w)\\1{' + str(self.nr_nuc_mono_repeat) + '}'
@@ -65,20 +65,21 @@ class Prober:
                 mono_search = re.search(nuc_mono_repeat, cur_probe)
                 if not mono_search:
 
-                    mono_time_list.append(time.time()-start_time)
+                    mono_time_list.append(time.clock()-start_time)
                     # Zoek naar 3-nuc-di-repeats
-                    start_time = time.time()
+                    start_time = time.clock()
 
                     di_search = re.search(nuc_di_repeat, cur_probe)
                     if not di_search:
-
+                        di_time_list.append(time.clock()-start_time)
                         # Pak alleen het gebied na 5(hairpin sequentie) + 3(gap)
+
+                        start_time = time.clock()
                         hairpin_domain = cur_probe[8:]
                         hairpin_bool = False
-                        di_time_list.append(time.time()-start_time)
 
                         # Pak alle mogelijke sequenties van 5 in hairpin_domain
-                        start_time = time.time()
+
                         for y in range(0, len(hairpin_domain)-5):
                             hairpin_seq = hairpin_domain[y:y+5]
 
@@ -87,14 +88,14 @@ class Prober:
 
                             # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
                             if hairpin_seq_rev_com in cur_probe[:y+5]:
-
                                 hairpin_count += 1
                                 hairpin_bool = True
                                 break
 
-                        hairpin_time_list.append(time.time()-start_time)
+                        hairpin_time_list.append(time.clock()-start_time)
 
                         if not hairpin_bool:
+
                             # tel x bij de locatie op als geschikte probe is gevonden en construct probe object
                             i += self.nucleotide_frame_skip
 
@@ -110,29 +111,48 @@ class Prober:
 
                             probes.append(Probes(i, cur_probe, fraction, cur_gc_perc, cur_tm))
                     else:
-                        di_repeat_positions = di_search.span()
-                        i += di_repeat_positions[0]
-                        # testen of deze count klopt of +1 moet zijn
-                        di_count += di_repeat_positions[0]
-                        di_time_list.append(time.time()-start_time)
+
+                        if skip_bool:
+                            di_repeat_positions = di_search.span()
+                            i += di_repeat_positions[0]
+                            di_count += di_repeat_positions[0]
+                        else:
+                            i += 1
+                            di_count += 1
+
+                        di_time_list.append(time.clock()-start_time)
                 else:
-                    mono_repeat_positions = mono_search.span()
-                    i += mono_repeat_positions[0]
-                    # testen of deze count klopt of +1 moet zijn
-                    mono_count += mono_repeat_positions[0]
-                    mono_time_list.append(time.time()-start_time)
+
+                    if skip_bool:
+                        mono_repeat_positions = mono_search.span()
+                        i += mono_repeat_positions[0]
+                        mono_count += mono_repeat_positions[0]
+                    else:
+                        i += 1
+                        di_count += 1
+
+                    mono_time_list.append(time.clock()-start_time)
             else:
                 gc_count += 1
-                gc_time_list.append(time.time() - start_time)
+                gc_time_list.append(time.clock() - start_time)
 
             i += 1
+
+        # print('GENE ID:\t', gene.gene_id)
+        # print('GC:\t\t\t',sum(gc_time_list))
+        # print('MONO:\t\t',sum(mono_time_list))
+        # print('DI:\t\t\t',sum(di_time_list))
+        # print('HAIRPIN:\t', sum(hairpin_time_list))
+        # print('TOTAL CALC: ', (sum(gc_time_list)+sum(mono_time_list)+sum(di_time_list)+sum(hairpin_time_list)))
+        # print('TOTAL NORM: ', time.clock() - start_time_total)
+        # print('----------------------------------------------')
 
         # TODO Figure out a proper way to set these
         gene.time_mono = sum(mono_time_list)
         gene.time_di = sum(di_time_list)
-        gene.time_haipin = sum(hairpin_time_list)
+        gene.time_hairpin = sum(hairpin_time_list)
         gene.time_gc = sum(gc_time_list)
-        gene.time_total = time.time() - start_time_total
+        gene.time_total = time.clock() - start_time_total
 
         gene.possible_probe_count = possible_probe_count
         gene.probe_count = probe_count
@@ -160,7 +180,7 @@ class Probes:
 # import database_functions
 # import exceptions
 # def main():
-#     start_time = time.time()
+#     start_time = time.clock()
 #
 #     # Set the settings for probe creation
 #     nr_nuc_mono_repeat = 3
@@ -225,7 +245,7 @@ class Probes:
 #     database.set_globals(True)
 #     database.close_connection()
 #
-#     print(time.time()-start_time)
+#     print(time.clock()-start_time)
 #
 #
 # if __name__ == '__main__':

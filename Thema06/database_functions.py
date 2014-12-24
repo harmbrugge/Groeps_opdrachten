@@ -186,13 +186,25 @@ class Database:
                          'time_di,'
                          'time_hairpin,'
                          'time_gc,'
-                         'genbank_id) '
-                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5})'.format(gene.time_total,
+                         'genbank_id,'
+                         'count_mono_repeat,'
+                         'count_di_repeat,'
+                         'count_hairpin,'
+                         'count_possible,'
+                         'count_total,'
+                         'count_gc)'
+                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11})'.format(gene.time_total,
                                                                    gene.time_mono,
                                                                    gene.time_di,
                                                                    gene.time_hairpin,
                                                                    gene.time_gc,
-                                                                   cur_gb_id))
+                                                                   cur_gb_id,
+                                                                   gene.mono_count,
+                                                                   gene.di_count,
+                                                                   gene.hairpin_count,
+                                                                   gene.possible_probe_count,
+                                                                   gene.probe_count,
+                                                                   gene.gc_count))
 
     def set_benchmark_genbank(self, bench_id, filename, chromosome):
 
@@ -227,7 +239,8 @@ class Database:
                                                                             pc_id))
         return self.conn.insert_id()
 
-    def set_benchmark_computers(self, pc_name, proc_id, clockspeed, core_count, ram_size, arch):
+    def set_benchmark_computers(self, pc_name, proc_id, clockspeed, core_count, ram_size, ram_speed, arch,
+                                python_version, os_version, kernel_version):
 
         self.cur.execute('INSERT INTO th6_computers ('
                          'pc_name,'
@@ -235,9 +248,21 @@ class Database:
                          'clockspeed,'
                          'core_count,'
                          'ram_size,'
-                         'arch)'
-                         'VALUES("{0}","{1}","{2}",{3},{4},"{5}")'.format(pc_name, proc_id, clockspeed, core_count, ram_size, arch))
-
+                         'ram_speed,'
+                         'architecture,'
+                         'python_version,'
+                         'operating_sytem,'
+                         'kernel_version)'
+                         'VALUES("{0}","{1}",{2},{3},{4},{5},"{6}","{7}","{8}","{9}")'.format(pc_name,
+                                                                          proc_id,
+                                                                          clockspeed,
+                                                                          core_count,
+                                                                          ram_size,
+                                                                          ram_speed,
+                                                                          arch,
+                                                                          python_version,
+                                                                          os_version,
+                                                                          kernel_version))
         return self.conn.insert_id()
 
 
