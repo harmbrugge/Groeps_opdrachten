@@ -6,7 +6,6 @@ import os
 import sys
 import time
 import database_functions
-import exceptions
 
 
 def handler(pc_id, database, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=2, min_gc_percentage=50,
@@ -18,7 +17,7 @@ def handler(pc_id, database, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_len
                                nucleotide_frame_skip=nucleotide_frame_skip,
                                min_gc_percentage=min_gc_percentage)
 
-    bench_id = database.set_benchmark_benchmarks(prober_obj, inval_nuc_frame_skip, pc_id, comments)
+    #bench_id = database.set_benchmark_benchmarks(prober_obj, inval_nuc_frame_skip, pc_id, comments)
 
     for file in glob.glob(os.path.join('genbank_files/Plasmodium', '*.gbk')):
 
@@ -28,13 +27,14 @@ def handler(pc_id, database, nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_len
         db_genbank = database.get_benchmark_genbank(file)
 
         if not db_genbank:
-            gb_id = database.set_benchmark_genbank(file, chromosome.chromosome_id)
+            pass
+            #gb_id = database.set_benchmark_genbank(file, chromosome.chromosome_id)
         else:
             gb_id = db_genbank[0]
 
         for gene in chromosome.genes:
             gene.probes = prober_obj.make_probes(gene, inval_nuc_frame_skip)
-            database.set_benchmark_times(gene, bench_id, gb_id)
+            #database.set_benchmark_times(gene, bench_id, gb_id)
         print('[done] ', file)
 
 def main():
@@ -80,14 +80,27 @@ def main():
         pc_id = input('Enter the id of the pc: ')
 
     # Set the settings for probe creation
+    main_start_time = time.clock()
     handler(pc_id, database, 3, 2, 20, 0, 20, True, 'inval nuc skip on 20%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-main_start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 20, 0, 20, False, 'inval nuc skip off 20%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 20, 0, 50, True, 'inval nuc skip on 50%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 20, 0, 50, False, 'inval nuc skip off 50%')
-
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 25, 0, 50, True, 'inval nuc skip on 50%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 30, 0, 50, True, 'inval nuc skip on 50%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
+    start_time = time.clock()
     handler(pc_id, database, 3, 2, 35, 0, 50, True, 'inval nuc skip on 50%')
+    print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',round((time.clock()-start_time), 3))
 
     database.set_globals(True)
     database.close_connection()
