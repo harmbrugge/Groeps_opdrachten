@@ -39,7 +39,7 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
 
         database.commit()
 
-        genbank_parser.FastaWriter().write(genbank_parser.FastaWriter().get_probe_string(chromosome.genes))
+        genbank_parser.FastaWriter().write(genbank_parser.FastaWriter().get_probe_string(chromosome.genes, prober_obj))
 
         print('[done] ', file)
 
