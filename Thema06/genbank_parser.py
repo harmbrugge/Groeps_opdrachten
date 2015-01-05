@@ -255,11 +255,11 @@ class FastaWriter:
         return [file_string, filename]
 
     @staticmethod
-    def get_probe_string(genes):
+    def get_probe_string(genes, prober):
 
         # The creation of the filename .
         probe_list = list()
-        filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
+        filename = 'Probes_' + str(prober.id) + '_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
         # filename = 'Probes_test.fa'
 
         for gene in genes:
