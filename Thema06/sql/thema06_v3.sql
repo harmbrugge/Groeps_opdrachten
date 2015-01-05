@@ -2,6 +2,16 @@
 -- 12/18/14 15:38:22
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
+DROP TABLE IF EXISTS `th6_blasted_oligo` ;
+DROP TABLE IF EXISTS `th6_gene_experiment_data` ;
+DROP TABLE IF EXISTS `th6_probe` ;
+DROP TABLE IF EXISTS `th6_microarray` ;
+DROP TABLE IF EXISTS `th6_oligo` ;
+DROP TABLE IF EXISTS `th6_experiment_settings` ;
+DROP TABLE IF EXISTS `th6_gene` ;
+DROP TABLE IF EXISTS `th6_chromosome` ;
+DROP TABLE IF EXISTS `th6_organism` ;
+
 
 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
@@ -10,7 +20,6 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
 -- -----------------------------------------------------
 -- Table .`th6_organism`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_organism` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_organism` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -22,7 +31,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_chromosomes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_chromosomes` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_chromosomes` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -43,7 +51,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_genes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_genes` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_genes` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -68,7 +75,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_experiment_settings`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_experiment_settings` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_experiment_settings` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -85,7 +91,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_oligos`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_oligos` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_oligos` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -115,7 +120,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_microarrays`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_microarrays` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_microarrays` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -129,7 +133,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_probes`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_probes` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_probes` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -156,7 +159,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_gene_experiment_data`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_gene_experiment_data` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_gene_experiment_data` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -192,7 +194,6 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 -- Table .`th6_blasted_oligos`
 -- -----------------------------------------------------
-DROP TABLE IF EXISTS .`th6_blasted_oligos` ;
 
 CREATE TABLE IF NOT EXISTS .`th6_blasted_oligos` (
   `id` INT NOT NULL,

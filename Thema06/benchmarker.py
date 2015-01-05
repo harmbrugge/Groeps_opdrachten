@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+0#!/usr/bin/env python3
 import genbank_parser
 import glob
 import prober
@@ -8,7 +8,7 @@ import time
 import database_functions
 
 
-def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=2, min_gc_percentage=50,
+def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=0, min_gc_percentage=50,
             inval_nuc_frame_skip=True):
 
     prober_obj = prober.Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
@@ -49,7 +49,7 @@ def main():
 
     # Set the settings for probe creation
     main_start_time = time.clock()
-    handler(3, 2, 20, 0, 20, True)
+    handler()
     print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',
           round((time.clock()-main_start_time), 3))
     # start_time = time.clock()
