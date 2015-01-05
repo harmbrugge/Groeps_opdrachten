@@ -115,7 +115,7 @@ class Database:
                          'set_min_gc_perc) '
                          'VALUES (NULL, {0}, {1}, {2}, {3}, {4})'.format(prober_obj.nr_nuc_mono_repeat,
                                                                          prober_obj.nr_nuc_di_repeat,
-                                                                         prober_obj.coverage,
+                                                                         prober_obj.nucleotide_frame_skip,
                                                                          prober_obj.probe_length,
                                                                          prober_obj.min_gc_percentage))
         # get the inserted primary key, needed for fk oligo table
