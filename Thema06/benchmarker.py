@@ -38,6 +38,9 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
             database.set_probes(prober_obj, gene)
 
         database.commit()
+
+        genbank_parser.FastaWriter().write(genbank_parser.FastaWriter().get_probe_string(chromosome.genes))
+
         print('[done] ', file)
 
     database.set_globals(True)

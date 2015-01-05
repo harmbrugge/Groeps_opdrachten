@@ -259,8 +259,8 @@ class FastaWriter:
 
         # The creation of the filename .
         probe_list = list()
-        #filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
-        filename = 'Probes_test.fa'
+        filename = 'Probes_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
+        # filename = 'Probes_test.fa'
 
         for gene in genes:
 
