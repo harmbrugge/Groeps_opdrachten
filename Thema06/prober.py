@@ -29,18 +29,11 @@ class Prober:
         hairpin_time_list = []
         gc_time_list = []
 
-        possible_probe_count = 0
-        probe_count = 0
-        mono_count = 0
-        di_count = 0
-        hairpin_count = 0
-        gc_count = 0
-
         probes = list()
 
         while i < len(gene.exon_seqs) - self.probe_length:
 
-            possible_probe_count += 1
+            gene.possible_probe_count += 1
             cur_probe = gene.exon_seqs[i:i+self.probe_length]
             start_time = time.clock()
 
@@ -88,7 +81,7 @@ class Prober:
 
                             # Zoek op de probe naar de sequentie rekening houdend met eindlocatie
                             if hairpin_seq_rev_com in cur_probe[:y+5]:
-                                hairpin_count += 1
+                                gene.hairpin_count += 1
                                 hairpin_bool = True
                                 break
 
@@ -100,7 +93,6 @@ class Prober:
                             i += self.nucleotide_frame_skip
 
                             gene.probe_count += 1
-                            probe_count += 1
                             fraction = (i+1) / len(gene.exon_seqs)
 
                             # Bepaling metlting temp (naive approach) niet accurate bij oligo nucs > 20
@@ -115,10 +107,10 @@ class Prober:
                         if skip_bool:
                             di_repeat_positions = di_search.span()
                             i += di_repeat_positions[0]
-                            di_count += di_repeat_positions[0]
+                            gene.di_count += di_repeat_positions[0]
                         else:
                             i += 1
-                            di_count += 1
+                            gene.di_count += 1
 
                         di_time_list.append(time.clock()-start_time)
                 else:
@@ -126,26 +118,17 @@ class Prober:
                     if skip_bool:
                         mono_repeat_positions = mono_search.span()
                         i += mono_repeat_positions[0]
-                        mono_count += mono_repeat_positions[0]
+                        gene.mono_count += mono_repeat_positions[0]
                     else:
                         i += 1
-                        di_count += 1
+                        gene.di_count += 1
 
                     mono_time_list.append(time.clock()-start_time)
             else:
-                gc_count += 1
+                gene.gc_count += 1
                 gc_time_list.append(time.clock() - start_time)
 
             i += 1
-
-        # print('GENE ID:\t', gene.gene_id)
-        # print('GC:\t\t\t',sum(gc_time_list))
-        # print('MONO:\t\t',sum(mono_time_list))
-        # print('DI:\t\t\t',sum(di_time_list))
-        # print('HAIRPIN:\t', sum(hairpin_time_list))
-        # print('TOTAL CALC: ', (sum(gc_time_list)+sum(mono_time_list)+sum(di_time_list)+sum(hairpin_time_list)))
-        # print('TOTAL NORM: ', time.clock() - start_time_total)
-        # print('----------------------------------------------')
 
         # TODO Figure out a proper way to set these
         gene.time_mono = sum(mono_time_list)
@@ -153,13 +136,6 @@ class Prober:
         gene.time_hairpin = sum(hairpin_time_list)
         gene.time_gc = sum(gc_time_list)
         gene.time_total = time.clock() - start_time_total
-
-        gene.possible_probe_count = possible_probe_count
-        gene.probe_count = probe_count
-        gene.mono_count = mono_count
-        gene.di_count = di_count
-        gene.hairpin_count = hairpin_count
-        gene.gc_count = gc_count
 
         return probes
 
@@ -172,82 +148,3 @@ class Probes:
         self.fraction = fraction
         self.gc_perc = gc_perc
         self.temp_melt = melting_temp
-
-
-# import genbank_parser
-# import glob
-# import os
-# import database_functions
-# import exceptions
-# def main():
-#     start_time = time.clock()
-#
-#     # Set the settings for probe creation
-#     nr_nuc_mono_repeat = 3
-#     nr_nuc_di_repeat = 2
-#     probe_length = 20
-#     nucleotide_frame_skip = 0
-#     min_gc_percentage = 20
-#
-#     prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
-#                     nr_nuc_mono_repeat=nr_nuc_mono_repeat,
-#                     probe_length=probe_length,
-#                     nucleotide_frame_skip=nucleotide_frame_skip,
-#                     min_gc_percentage=min_gc_percentage)
-#
-#     chromosome_list = list()
-#
-#     # loop over gbk files genbank dir
-#     for file in glob.glob(os.path.join('genbank_files/Plasmodium', '*.gbk')):
-#         # read genbank file
-#
-#         try:
-#             genbank = genbank_parser.GenBank(filename=file)
-#         except exceptions.ParseException:
-#             print("something went wrong in the creation of the genbank obj")
-#             exit(-1)
-#
-#         try:
-#             chromosome = genbank.make_chromosome()
-#         except exceptions.ParseException:
-#             print("something went wrong in the creation of the chromosome obj")
-#             exit(-1)
-#
-#         try:
-#             chromosome.genes = genbank.make_genes()
-#         except exceptions.ParseException:
-#             print("something went wrong in the creation of the gene obj")
-#             exit(-1)
-#         p_list = []
-#         for gene in chromosome.genes:
-#             gene.probes = prober.make_probes(gene)
-#             p_list.append(len(gene.probes))
-#         chromosome_list.append(chromosome)
-#         print('Done with chromsome:', chromosome.chromosome_id)
-#
-#     # open a DB connection
-#     database = database_functions.Database()
-#     database.open_connection()
-#     database.set_globals(False)
-#
-#     # set data to DB
-#     database.set_probe_experiment(prober)
-#     for chromosome in chromosome_list:
-#         database.set_chromosome(chromosome)
-#         print('Chromosome set to DB:', chromosome.chromosome_id)
-#
-#         for gene in chromosome.genes:
-#             database.set_gene(gene, chromosome.chromosome_id)
-#             database.set_probes(prober, gene)
-#         print('Genes set to DB:', chromosome.chromosome_id)
-#         print('Probes set to DB:', chromosome.chromosome_id)
-#
-#     database.set_globals(True)
-#     database.close_connection()
-#
-#     print(time.clock()-start_time)
-#
-#
-# if __name__ == '__main__':
-#     # C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py
-#     main()

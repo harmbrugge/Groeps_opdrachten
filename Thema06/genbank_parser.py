@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import re
 import os
-import exceptions
+
+from web import exceptions
 
 
 class GenBank:
@@ -301,5 +302,3 @@ class FastaWriter:
             file.close()
 
         return filename
-
-# C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py

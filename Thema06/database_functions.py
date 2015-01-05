@@ -2,8 +2,7 @@
 import pymysql
 import re
 import prober
-from genbank_parser import Gene, Chromosome, FastaWriter
-import time
+from genbank_parser import Gene, Chromosome
 
 
 class Database:
@@ -98,10 +97,10 @@ class Database:
                          'protein,'
                          'protein_id)'
                          'VALUES ("{0}", "{1}", "{2}", "{3}", "{4}");'.format(chromosome_id,
-                                                                                     gene_obj.gene_id,
-                                                                                     gene_obj.strand,
-                                                                                     gene_obj.protein,
-                                                                                     gene_obj.protein_id))
+                                                                              gene_obj.gene_id,
+                                                                              gene_obj.strand,
+                                                                              gene_obj.protein,
+                                                                              gene_obj.protein_id))
         # Removed the seqeunce for testing
         gene_obj.db_id = self.conn.insert_id()
 
@@ -178,106 +177,6 @@ class Database:
         for row in self.cur.fetchall():
             self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id = "{0}"'.format(row[0]))
 
-    def set_benchmark_times(self, gene, bench_id, gb_id):
-
-        self.cur.execute('INSERT INTO th6_times ('
-                         'time_total,'
-                         'time_mono,'
-                         'time_di,'
-                         'time_hairpin,'
-                         'time_gc,'
-                         'count_mono_repeat,'
-                         'count_di_repeat,'
-                         'count_hairpin,'
-                         'count_possible,'
-                         'count_total,'
-                         'count_gc,'
-                         'th6_benchmarks_id,'
-                         'th6_genbank_id)'
-                         'VALUES ({0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}, {11}, {12})'.format(gene.time_total,
-                                                                   gene.time_mono,
-                                                                   gene.time_di,
-                                                                   gene.time_hairpin,
-                                                                   gene.time_gc,
-                                                                   gene.mono_count,
-                                                                   gene.di_count,
-                                                                   gene.hairpin_count,
-                                                                   gene.possible_probe_count,
-                                                                   gene.probe_count,
-                                                                   gene.gc_count,
-                                                                   bench_id,
-                                                                   gb_id))
-
-    def set_benchmark_genbank(self, filename, chromosome):
-
-        self.cur.execute('INSERT INTO th6_genbank ('
-                          'filename,'
-                          'chromosome)'
-                          'VALUES ("{0}", "{1}")'.format(filename,
-                                                              chromosome))
-
-        return self.conn.insert_id()
-
-    def set_benchmark_benchmarks(self, prober, inval_nuc_frame_skip, pc_id, comments=''):
-
-        self.cur.execute('INSERT INTO th6_benchmarks ('
-                         'comments,'
-                         'mono_rep,'
-                         'di_rep,'
-                         'probe_len,'
-                         'min_gc_perc,'
-                         'val_nuc_frame_skip,'
-                         'inval_nuc_frame_skip,'
-                         'computers_pc_id)'
-                         'VALUES ("{0}",{1},{2},{3},{4},{5},{6},{7})'.format(comments,
-                                                                            prober.nr_nuc_mono_repeat,
-                                                                            prober.nr_nuc_di_repeat,
-                                                                            prober.probe_length,
-                                                                            prober.min_gc_percentage,
-                                                                            prober.nucleotide_frame_skip,
-                                                                            inval_nuc_frame_skip,
-                                                                            pc_id))
-        return self.conn.insert_id()
-
-    def set_benchmark_computers(self, pc_name, proc_id, clockspeed, core_count, ram_size, ram_speed, arch,
-                                python_version, os_version, kernel_version):
-
-        self.cur.execute('INSERT INTO th6_computers ('
-                         'pc_name,'
-                         'proccessor_id,'
-                         'clockspeed,'
-                         'core_count,'
-                         'ram_size,'
-                         'ram_speed,'
-                         'architecture,'
-                         'python_version,'
-                         'operating_sytem,'
-                         'kernel_version)'
-                         'VALUES("{0}","{1}",{2},{3},{4},{5},"{6}","{7}","{8}","{9}")'.format(pc_name,
-                                                                          proc_id,
-                                                                          clockspeed,
-                                                                          core_count,
-                                                                          ram_size,
-                                                                          ram_speed,
-                                                                          arch,
-                                                                          python_version,
-                                                                          os_version,
-                                                                          kernel_version))
-        return self.conn.insert_id()
-
-    def get_benchmark_computers(self):
-
-        self.cur.execute('select id,pc_name from th6_computers;')
-
-        return self.cur.fetchall()
-
-    def get_benchmark_genbank(self, filename):
-
-        self.cur.execute('select id from th6_genbank where filename = "{0}";'.format(filename))
-        return self.cur.fetchone()
-
-
-#chromosome_obj.chromosome_id = self.conn.insert_id()
     def start_transaction(self):
         self.cur.execute('start transaction;')
 
@@ -304,51 +203,4 @@ class Database:
 
         self.cur.execute('SELECT * FROM th6_oligos WHERE gene_id = "{0}"'.format(gene.gene_id))
         for row in self.cur.fetchall():
-            gene.probes.append(prober.Probes(row[0], row[3], row[6], row[4]))
-
-
-if __name__ == '__main__':
-    start_time = time.time()
-
-    db = Database()
-    db.open_connection()
-    db.set_globals(False)
-
-    # fastawriter = FastaWriter()
-
-    probe_list = list()
-
-    chromosomes = db.get_chromomes()
-    for chrom in chromosomes:
-        db.get_genes(chrom)
-        # for gen in chrom.genes:
-        #     db.get_probes(gen)
-
-    # for chrom in chromosomes:
-    #     probe_list.append(fastawriter.get_probe_string(chrom.genes))
-
-    # fastawriter.write_list(probe_list)
-
-    # Set the settings for probe creation
-    prober = prober.Prober(nr_nuc_di_repeat=2,
-                           nr_nuc_mono_repeat=3,
-                           probe_length=20,
-                           nucleotide_frame_skip=10,
-                           min_gc_percentage=50)
-
-    db.set_probe_experiment(prober)
-
-    for chrom in chromosomes:
-        for gene in chrom.genes:
-            gene.probes = prober.make_probes(gene)
-            db.set_probes(prober, gene)
-
-        print('Done with chromosome:', chrom.chromosome_id)
-
-    db.set_globals(True)
-    db.close_connection()
-
-    print(time.time()-start_time)
-
-# C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py
-# 25, 55 min elegans 20% gc framskip 2 no transaction
+            gene.probes.append(prober.Probes(row[0], row[3], row[6], row[4], row[5]))

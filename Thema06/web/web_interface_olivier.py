@@ -1,12 +1,12 @@
 #!/usr/bin/python3
-import genbank_parser
-import framework
 import cgi
-import cgitb
 import tarfile
 import io
 import datetime
-import exceptions
+
+import genbank_parser
+import framework
+from web import exceptions
 
 
 class TarFile:

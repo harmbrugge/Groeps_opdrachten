@@ -1,12 +1,11 @@
 #!/usr/bin/python3
-import genbank_parser
-import website
 import cgi
-import cgitb
 import tarfile
 import io
 import datetime
-import exceptions
+
+import genbank_parser
+from web import exceptions, website
 
 
 class TarFile:
