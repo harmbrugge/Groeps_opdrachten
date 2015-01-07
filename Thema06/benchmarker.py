@@ -18,11 +18,11 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
                                min_gc_percentage=min_gc_percentage)
 
     # open a DB connection
-    database = database_functions.Database()
-    database.open_connection()
-    database.set_globals(False)
+    # database = database_functions.Database()
+    # database.open_connection()
+    # database.set_globals(False)
 
-    database.set_probe_experiment(prober_obj)
+    # database.set_probe_experiment(prober_obj)
 
     probe_list = list()
 
@@ -32,22 +32,22 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
         chromosome = genbank.make_chromosome()
         chromosome.genes = genbank.make_genes()
 
-        database.set_chromosome(chromosome)
+        # database.set_chromosome(chromosome)
 
         for gene in chromosome.genes:
             gene.probes = prober_obj.make_probes(gene, inval_nuc_frame_skip)
             probe_list += gene.probes
-            database.set_gene(gene, chromosome.chromosome_id)
-            database.set_probes(prober_obj, gene)
+            # database.set_gene(gene, chromosome.chromosome_id)
+            # database.set_probes(prober_obj, gene)
 
-        database.commit()
+        # database.commit()
 
         print('[done] ', file)
 
-    genbank_parser.FastaWriter().write_probes_gondor(probe_list, 200)
+    genbank_parser.FastaWriter().write_probes_gondor(probe_list, 200, 'Experiment_' + str(prober_obj.id) + '/')
 
-    database.set_globals(True)
-    database.close_connection()
+    # database.set_globals(True)
+    # database.close_connection()
 
 
 def main():

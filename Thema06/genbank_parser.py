@@ -295,7 +295,7 @@ class FastaWriter:
             probes_in_current_file += 1
 
             if probes_in_current_file == probes_per_file:
-                self.write([''.join(seq_to_write), 'probes_' + str(file_number)])
+                self.write([''.join(seq_to_write), 'probes_' + str(file_number)], output_dir)
                 probes_in_current_file = 0
                 seq_to_write = list()
                 file_number += 1
@@ -308,9 +308,11 @@ class FastaWriter:
         :param data: A data representation of a .fasta file
         :param output_dir: The path of the output dir
         """
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+
         # The creation of the filename .
         filename = output_dir + data[1]
-
         if os.path.exists(filename):
             print('An exception ouccurd: File:', filename, 'exists already!')
         else:
