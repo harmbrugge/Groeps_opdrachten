@@ -259,7 +259,7 @@ class FastaWriter:
 
         # The creation of the filename .
         probe_list = list()
-        filename = 'Probes_' + str(prober.id) + '_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
+        filename = 'Probes_' + str(1) + '_' + genes[0].organism.replace(' ', '-') + '_chromosome-' + str(genes[0].chromosome_id) + '.fa'
         # filename = 'Probes_test.fa'
 
         for gene in genes:
@@ -275,6 +275,31 @@ class FastaWriter:
             probe_list.append(''.join(seq_to_write))
 
         return [''.join(probe_list), filename]
+
+    def write_probes_gondor(self, probe_list, file_count):
+        probe_count = len(probe_list)
+        probes_per_file = int((probe_count / file_count))
+
+        i = 0
+        file_number = 1
+        probes_in_current_file = 0
+
+        seq_to_write = list()
+        for probe in probe_list:
+
+            seq_to_write.append('>'
+                                + str(probe.probe_id)
+                                + '\n')
+            seq_to_write.append(probe.sequence + '\n\n')
+
+            probes_in_current_file += 1
+
+            if probes_in_current_file == probes_per_file:
+                self.write([''.join(seq_to_write), 'probes_' + str(file_number)])
+                probes_in_current_file = 0
+                seq_to_write = list()
+                file_number += 1
+            i += 1
 
     @staticmethod
     def write(data, output_dir='file/'):
@@ -293,9 +318,7 @@ class FastaWriter:
             file = open(filename, 'w')
 
             if type(data) == list:
-                list_to_write = []
-                for item in list_to_write:
-                    file.write(item[0] + '\n\n')
+                file.write(data[0])
             elif type(data) == str:
 
                 file.write(data[0])

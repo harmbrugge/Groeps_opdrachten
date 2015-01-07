@@ -24,6 +24,8 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
 
     database.set_probe_experiment(prober_obj)
 
+    probe_list = list()
+
     for file in glob.glob(os.path.join('genbank_files/Plasmodium', '*.gbk')):
 
         genbank = genbank_parser.GenBank(filename=file)
@@ -34,21 +36,21 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
 
         for gene in chromosome.genes:
             gene.probes = prober_obj.make_probes(gene, inval_nuc_frame_skip)
+            probe_list += gene.probes
             database.set_gene(gene, chromosome.chromosome_id)
             database.set_probes(prober_obj, gene)
 
         database.commit()
 
-        genbank_parser.FastaWriter().write(genbank_parser.FastaWriter().get_probe_string(chromosome.genes, prober_obj))
-
         print('[done] ', file)
+
+    genbank_parser.FastaWriter().write_probes_gondor(probe_list, 200)
 
     database.set_globals(True)
     database.close_connection()
 
 
 def main():
-
 
     # Set the settings for probe creation
     main_start_time = time.clock()
