@@ -276,7 +276,7 @@ class FastaWriter:
 
         return [''.join(probe_list), filename]
 
-    def write_probes_gondor(self, probe_list, file_count):
+    def write_probes_gondor(self, probe_list, file_count, output_dir=''):
         probe_count = len(probe_list)
         probes_per_file = int((probe_count / file_count))
 
