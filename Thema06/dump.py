@@ -11,7 +11,7 @@
 #     nr_nuc_di_repeat = 2
 #     probe_length = 20
 #     nucleotide_frame_skip = 0
-#     min_gc_percentage = 20
+#     min_gc_percentage = 20 SELECT oligo_id FROM th6_blasts WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1
 #
 #     prober = Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
 #                     nr_nuc_mono_repeat=nr_nuc_mono_repeat,

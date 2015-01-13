@@ -2,6 +2,7 @@
 import pymysql
 import re
 import prober
+import sys
 from genbank_parser import Gene, Chromosome
 
 
@@ -171,11 +172,18 @@ class Database:
 
     def set_valid_probes_from_blast(self):
 
-        self.cur.execute('SELECT oligo_id FROM th6_blasted_oligos '
+        self.cur.execute('SELECT oligo_id FROM th6_blasts '
                          'WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1')
 
-        for row in self.cur.fetchall():
+        oligos = self.cur.fetchall()
+        total_len = len(oligos)
+
+        i = 0
+        for row in oligos:
             self.cur.execute('UPDATE th6_oligos SET blast = TRUE WHERE id = "{0}"'.format(row[0]))
+            i += 1
+            sys.stdout.write('\r{0}'.format((float(i)/total_len) * 100))
+            sys.stdout.flush()
 
     def start_transaction(self):
         self.cur.execute('start transaction;')
@@ -196,6 +204,7 @@ class Database:
     def get_genes(self, chromosome):
 
         self.cur.execute('SELECT * FROM th6_genes WHERE chromosome_id = "{0}"'.format(chromosome.chromosome_id))
+        print('DONE SELECTING!')
         for row in self.cur.fetchall():
             chromosome.genes.append(Gene(row[0], row[6], None, row[3], row[7], row[8], chromosome))
 
@@ -204,3 +213,13 @@ class Database:
         self.cur.execute('SELECT * FROM th6_oligos WHERE gene_id = "{0}"'.format(gene.gene_id))
         for row in self.cur.fetchall():
             gene.probes.append(prober.Probes(row[0], row[3], row[6], row[4], row[5]))
+
+if __name__ == '__main__':
+    db = Database()
+    db.open_connection()
+    db.set_globals(False)
+    db.set_valid_probes_from_blast()
+    db.set_globals(True)
+    db.close_connection()
+
+    pass

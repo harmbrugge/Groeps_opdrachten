@@ -54,7 +54,7 @@ def main():
 
     # Set the settings for probe creation
     main_start_time = time.clock()
-    handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=0, min_gc_percentage=20)
+    handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotide_frame_skip=0, min_gc_percentage=30)
     print('[Total elapsed] ', round((time.clock()-main_start_time), 3), ' [Iteration elapsed] ',
           round((time.clock()-main_start_time), 3))
     # start_time = time.clock()
