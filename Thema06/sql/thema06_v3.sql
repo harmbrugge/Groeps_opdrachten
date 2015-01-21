@@ -2,30 +2,30 @@
 -- 12/18/14 15:38:22
 -- Model: New Model    Version: 1.0
 -- MySQL Workbench Forward Engineering
-DROP TABLE IF EXISTS `th6_blasted_oligo` ;
-DROP TABLE IF EXISTS `th6_gene_experiment_data` ;
-DROP TABLE IF EXISTS `th6_probe` ;
-DROP TABLE IF EXISTS `th6_microarray` ;
-DROP TABLE IF EXISTS `th6_oligo` ;
-DROP TABLE IF EXISTS `th6_experiment_settings` ;
-DROP TABLE IF EXISTS `th6_gene` ;
-DROP TABLE IF EXISTS `th6_chromosome` ;
-DROP TABLE IF EXISTS `th6_organism` ;
+DROP TABLE IF EXISTS `th6_blasted_oligos`;
+DROP TABLE IF EXISTS `th6_gene_experiment_data`;
+DROP TABLE IF EXISTS `th6_probes`;
+DROP TABLE IF EXISTS `th6_microarrays`;
+DROP TABLE IF EXISTS `th6_oligos`;
+DROP TABLE IF EXISTS `th6_experiment_settings`;
+DROP TABLE IF EXISTS `th6_genes`;
+DROP TABLE IF EXISTS `th6_chromosomes`;
+DROP TABLE IF EXISTS `th6_organism`;
 
 
-SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
-SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
-SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='TRADITIONAL,ALLOW_INVALID_DATES';
+SET @OLD_UNIQUE_CHECKS = @@UNIQUE_CHECKS, UNIQUE_CHECKS = 0;
+SET @OLD_FOREIGN_KEY_CHECKS = @@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS = 0;
+SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE = 'TRADITIONAL,ALLOW_INVALID_DATES';
 
 -- -----------------------------------------------------
 -- Table .`th6_organism`
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_organism` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id`   INT         NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(60) NOT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -33,19 +33,19 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_chromosomes` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `organism_id` INT NOT NULL,
-  `external_id` VARCHAR(45) NULL DEFAULT NULL,
-  `organism` VARCHAR(45) NULL DEFAULT NULL,
+  `id`             INT         NOT NULL AUTO_INCREMENT,
+  `organism_id`    INT         NOT NULL,
+  `external_id`    VARCHAR(45) NULL DEFAULT NULL,
+  `organism`       VARCHAR(45) NULL DEFAULT NULL,
   `chromosome_def` VARCHAR(45) NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_chromosome_organism` (`organism_id` ASC),
   CONSTRAINT `fk_chromosome_organism`
-    FOREIGN KEY (`organism_id`)
-    REFERENCES .`th6_organism` (`id`)
+  FOREIGN KEY (`organism_id`)
+  REFERENCES .`th6_organism` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -53,23 +53,23 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_genes` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `chromosome_id` INT NOT NULL,
-  `external_id` VARCHAR(45) NULL DEFAULT NULL,
-  `sequence` TEXT NULL DEFAULT NULL,
-  `start` INT NULL DEFAULT NULL,
-  `stop` INT NULL DEFAULT NULL,
-  `strand` CHAR(1) NULL DEFAULT NULL,
-  `protein` VARCHAR(100) NULL DEFAULT NULL,
-  `protein_id` VARCHAR(45) NULL DEFAULT NULL,
+  `id`            INT          NOT NULL AUTO_INCREMENT,
+  `chromosome_id` INT          NOT NULL,
+  `external_id`   VARCHAR(45)  NULL DEFAULT NULL,
+  `sequence`      TEXT         NULL DEFAULT NULL,
+  `start`         INT          NULL DEFAULT NULL,
+  `stop`          INT          NULL DEFAULT NULL,
+  `strand`        CHAR(1)      NULL DEFAULT NULL,
+  `protein`       VARCHAR(100) NULL DEFAULT NULL,
+  `protein_id`    VARCHAR(45)  NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_gene_chromosome` (`chromosome_id` ASC),
   CONSTRAINT `fk_gene_chromosome`
-    FOREIGN KEY (`chromosome_id`)
-    REFERENCES .`th6_chromosomes` (`id`)
+  FOREIGN KEY (`chromosome_id`)
+  REFERENCES .`th6_chromosomes` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -77,15 +77,15 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_experiment_settings` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `date` DATETIME NULL DEFAULT NULL,
-  `set_mono_repeat` INT NULL DEFAULT NULL,
-  `set_di_repeat` INT NULL DEFAULT NULL,
-  `set_coverage` INT NULL DEFAULT NULL,
-  `set_probe_len` INT NULL DEFAULT NULL,
-  `set_min_gc_perc` FLOAT NULL,
+  `id`              INT      NOT NULL AUTO_INCREMENT,
+  `date`            DATETIME NULL DEFAULT NULL,
+  `set_mono_repeat` INT      NULL DEFAULT NULL,
+  `set_di_repeat`   INT      NULL DEFAULT NULL,
+  `set_coverage`    INT      NULL DEFAULT NULL,
+  `set_probe_len`   INT      NULL DEFAULT NULL,
+  `set_min_gc_perc` FLOAT    NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -93,28 +93,30 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_oligos` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `gene_id` INT NOT NULL,
-  `experiment_id` INT NOT NULL,
-  `sequence` VARCHAR(25) NOT NULL,
-  `cg_perc` DOUBLE NULL DEFAULT NULL,
-  `temp_melt` DOUBLE NULL DEFAULT NULL,
-  `fraction` DOUBLE NULL DEFAULT NULL,
-  `blast` BOOL DEFAULT FALSE,
+  `id`            INT         NOT NULL AUTO_INCREMENT,
+  `gene_id`       INT         NOT NULL,
+  `experiment_id` INT         NOT NULL,
+  `sequence`      VARCHAR(25) NOT NULL,
+  `cg_perc`       DOUBLE      NULL DEFAULT NULL,
+  `temp_melt`     DOUBLE      NULL DEFAULT NULL,
+  `fraction`      DOUBLE      NULL DEFAULT NULL,
+  `blast`         BOOL DEFAULT FALSE,
+  `start_pos`     INT         NOT NULL,
+  `stop_pos`      INT         NOT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_oligo_gene1` (`gene_id` ASC),
   INDEX `fk_oligo_probe_experiment1` (`experiment_id` ASC),
   CONSTRAINT `fk_oligo_gene1`
-    FOREIGN KEY (`gene_id`)
-    REFERENCES .`th6_genes` (`id`)
+  FOREIGN KEY (`gene_id`)
+  REFERENCES .`th6_genes` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_oligo_probe_experiment1`
-    FOREIGN KEY (`experiment_id`)
-    REFERENCES .`th6_experiment_settings` (`id`)
+  FOREIGN KEY (`experiment_id`)
+  REFERENCES .`th6_experiment_settings` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -122,12 +124,12 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_microarrays` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id`          INT    NOT NULL AUTO_INCREMENT,
   `hybrid_temp` DOUBLE NULL DEFAULT NULL,
-  `min_temp` DOUBLE NULL DEFAULT NULL,
-  `max_temp` DOUBLE NULL DEFAULT NULL,
+  `min_temp`    DOUBLE NULL DEFAULT NULL,
+  `max_temp`    DOUBLE NULL DEFAULT NULL,
   PRIMARY KEY (`id`))
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -135,25 +137,25 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_probes` (
-  `id` INT NOT NULL AUTO_INCREMENT,
+  `id`            INT NOT NULL AUTO_INCREMENT,
   `microarray_id` INT NOT NULL,
-  `oligo_id` INT NOT NULL,
-  `pos_y` INT NULL DEFAULT NULL,
-  `pos_x` INT NULL DEFAULT NULL,
+  `oligo_id`      INT NOT NULL,
+  `pos_y`         INT NULL DEFAULT NULL,
+  `pos_x`         INT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_probe_microarray1` (`microarray_id` ASC),
   INDEX `fk_th6_probes_th6_oligos1_idx` (`oligo_id` ASC),
   CONSTRAINT `fk_probe_microarray1`
-    FOREIGN KEY (`microarray_id`)
-    REFERENCES .`th6_microarrays` (`id`)
+  FOREIGN KEY (`microarray_id`)
+  REFERENCES .`th6_microarrays` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_th6_probes_th6_oligos1`
-    FOREIGN KEY (`oligo_id`)
-    REFERENCES .`th6_oligos` (`id`)
+  FOREIGN KEY (`oligo_id`)
+  REFERENCES .`th6_oligos` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -161,34 +163,34 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_gene_experiment_data` (
-  `id` INT NOT NULL AUTO_INCREMENT,
-  `gene_id` INT NOT NULL,
-  `experiment_id` INT NOT NULL,
-  `count_mono_repeat` INT NULL DEFAULT NULL,
-  `count_di_repeat` INT NULL DEFAULT NULL,
-  `count_hairpin` INT NULL DEFAULT NULL,
-  `count_possible` INT NULL DEFAULT NULL,
-  `count_gc` INT NULL DEFAULT NULL,
-  `count_total` INT NULL DEFAULT NULL,
-  `time_total` FLOAT NULL DEFAULT NULL,
-  `time_mono` FLOAT NULL DEFAULT NULL,
-  `time_di` FLOAT NULL DEFAULT NULL,
-  `time_gc` FLOAT NULL DEFAULT NULL,
-  `time_hairpin` FLOAT NULL DEFAULT NULL,
+  `id`                INT   NOT NULL AUTO_INCREMENT,
+  `gene_id`           INT   NOT NULL,
+  `experiment_id`     INT   NOT NULL,
+  `count_mono_repeat` INT   NULL DEFAULT NULL,
+  `count_di_repeat`   INT   NULL DEFAULT NULL,
+  `count_hairpin`     INT   NULL DEFAULT NULL,
+  `count_possible`    INT   NULL DEFAULT NULL,
+  `count_gc`          INT   NULL DEFAULT NULL,
+  `count_total`       INT   NULL DEFAULT NULL,
+  `time_total`        FLOAT NULL DEFAULT NULL,
+  `time_mono`         FLOAT NULL DEFAULT NULL,
+  `time_di`           FLOAT NULL DEFAULT NULL,
+  `time_gc`           FLOAT NULL DEFAULT NULL,
+  `time_hairpin`      FLOAT NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_experiment_genes_th6_gene1_idx` (`gene_id` ASC),
   INDEX `fk_experiment_genes_th6_probe_experiment1_idx` (`experiment_id` ASC),
   CONSTRAINT `fk_experiment_genes_th6_gene1`
-    FOREIGN KEY (`gene_id`)
-    REFERENCES .`th6_genes` (`id`)
+  FOREIGN KEY (`gene_id`)
+  REFERENCES .`th6_genes` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION,
   CONSTRAINT `fk_experiment_genes_th6_probe_experiment1`
-    FOREIGN KEY (`experiment_id`)
-    REFERENCES .`th6_experiment_settings` (`id`)
+  FOREIGN KEY (`experiment_id`)
+  REFERENCES .`th6_experiment_settings` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
 -- -----------------------------------------------------
@@ -196,29 +198,29 @@ ENGINE = InnoDB;
 -- -----------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS .`th6_blasted_oligos` (
-  `id` INT NOT NULL,
-  `oligo_id` INT NULL,
-  `gene_id` INT NULL,
-  `identity` FLOAT NULL,
-  `alignment_len` INT NULL,
-  `nr_mismatched` INT NULL,
-  `nr_gaps` INT NULL,
-  `start_pos` INT NULL,
-  `stop_pos` INT NULL,
-  `sbjct_start_pos` INT NULL,
-  `sbjct_stop_pos` INT NULL,
-  `e_value` FLOAT NULL,
-  `score` FLOAT NULL,
+  `id`              INT   NOT NULL,
+  `oligo_id`        INT   NULL,
+  `gene_id`         INT   NULL,
+  `identity`        FLOAT NULL,
+  `alignment_len`   INT   NULL,
+  `nr_mismatched`   INT   NULL,
+  `nr_gaps`         INT   NULL,
+  `start_pos`       INT   NULL,
+  `stop_pos`        INT   NULL,
+  `sbjct_start_pos` INT   NULL,
+  `sbjct_stop_pos`  INT   NULL,
+  `e_value`         FLOAT NULL,
+  `score`           FLOAT NULL,
   PRIMARY KEY (`id`),
   INDEX `fk_th6_blasted_oligos_th6_oligos1_idx` (`oligo_id` ASC),
   CONSTRAINT `fk_th6_blasted_oligos_th6_oligos1`
-    FOREIGN KEY (`oligo_id`)
-    REFERENCES .`th6_oligos` (`id`)
+  FOREIGN KEY (`oligo_id`)
+  REFERENCES .`th6_oligos` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
-ENGINE = InnoDB;
+  ENGINE = MyISAM;
 
 
-SET SQL_MODE=@OLD_SQL_MODE;
-SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
-SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
+SET SQL_MODE = @OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS = @OLD_UNIQUE_CHECKS;

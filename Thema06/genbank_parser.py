@@ -159,8 +159,11 @@ class Chromosome:
     data.
     """
 
-    def __init__(self, seq, chromosome_id, organism):
-        self.chromosome_id = chromosome_id
+    def __init__(self, seq, chromosome_def, organism):
+
+        # TODO add a var to store the db id
+        self.chromosome_id = chromosome_def
+        self.database_id = int()
         self.seq = seq
         self.organism = organism
         self.organism_id = None
@@ -185,7 +188,7 @@ class Gene:
         self.protein_id = protein_id
         self.probes = list()
 
-        self.db_id = gene_id
+        self.database_id = int()
 
         self.possible_probe_count = 0
         self.probe_count = 0

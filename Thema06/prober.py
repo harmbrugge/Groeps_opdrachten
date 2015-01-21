@@ -101,7 +101,7 @@ class Prober:
                                                                                         cur_g_count +
                                                                                         cur_c_count)), 3)
 
-                            probes.append(Probes(i, cur_probe, fraction, cur_gc_perc, cur_tm))
+                            probes.append(Probes(i, cur_probe, fraction, cur_gc_perc, cur_tm, i, (i+self.probe_length)))
                     else:
 
                         if skip_bool:
@@ -142,9 +142,11 @@ class Prober:
 
 class Probes:
 
-    def __init__(self, probe_id, sequence, fraction, gc_perc, melting_temp):
+    def __init__(self, probe_id, sequence, fraction, gc_perc, melting_temp, start_pos, stop_pos):
         self.probe_id = probe_id
         self.sequence = sequence
+        self.start_pos = start_pos
+        self.stop_pos = stop_pos
         self.fraction = fraction
         self.gc_perc = gc_perc
         self.temp_melt = melting_temp
