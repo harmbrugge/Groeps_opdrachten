@@ -3,6 +3,7 @@
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/Thema06/database_functions.py" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/Thema06/sql/sp.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/Thema06/sql/stored_procedures_thema_06.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/Thema06/sql/thema06.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/Thema06/sql/thema06_benchmarker_v1.sql" dialect="MySQL" />
     <file url="file://$PROJECT_DIR$/Thema06/sql/thema06_benchmarker_v2.sql" dialect="MySQL" />
@@ -12,3 +13,4 @@
     <file url="file://$PROJECT_DIR$/Thema06/sql/thema06_v3.sql" dialect="MySQL" />
   </component>
 </project>
+
