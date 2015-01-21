@@ -18,11 +18,11 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
                                min_gc_percentage=min_gc_percentage)
 
     #open a DB connection
-    #database = database_functions.Database()
-    #database.open_connection()
-    #database.set_globals(False)
+    database = database_functions.Database()
+    database.open_connection()
+    database.set_globals(False)
 
-   # database.set_probe_experiment(prober_obj)
+    database.set_probe_experiment(prober_obj)
     probe_list = list()
     file_iter = 1
 
@@ -34,21 +34,21 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
         chromosome = genbank.make_chromosome()
         chromosome.genes = genbank.make_genes()
 
-        #database.set_chromosome(chromosome)
+        database.set_chromosome(chromosome)
         gene_len = len(chromosome.genes)
         gene_count = 0
         for gene in chromosome.genes:
             gene.probes = prober_obj.make_probes(gene, inval_nuc_frame_skip)
             probe_list += gene.probes
-            #database.set_gene(gene, chromosome.database_id)
-            #database.set_probes(prober_obj, gene)
+            database.set_gene(gene, chromosome.database_id)
+            database.set_probes(prober_obj, gene)
 
             gene_perc = (gene_count/gene_len) * 100
             sys.stdout.write('\r[busy] genes: {0}'.format(round(gene_perc, 3)))
             sys.stdout.flush()
             gene_count += 1
 
-        #database.commit()
+        database.commit()
         print('\n[done] ', file)
         file_iter += 1
 
@@ -56,8 +56,8 @@ def handler(nr_nuc_mono_repeat=3, nr_nuc_di_repeat=2, probe_length=20, nucleotid
                                                      '/commons/student/2014-2015/Thema06/harm_olivier/Experiment_'
                                                      + str(prober_obj.id) + '/in/')
 
-    #database.set_globals(True)
-    #database.close_connection()
+    database.set_globals(True)
+    database.close_connection()
 
 
 def main():
