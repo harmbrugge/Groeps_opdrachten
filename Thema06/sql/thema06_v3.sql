@@ -197,25 +197,26 @@ CREATE TABLE IF NOT EXISTS .`th6_gene_experiment_data` (
 -- Table .`th6_blasted_oligos`
 -- -----------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS .`th6_blasted_oligos` (
-  `id`              INT   NOT NULL,
-  `oligo_id`        INT   NULL,
-  `gene_id`         INT   NULL,
-  `identity`        FLOAT NULL,
-  `alignment_len`   INT   NULL,
-  `nr_mismatched`   INT   NULL,
-  `nr_gaps`         INT   NULL,
-  `start_pos`       INT   NULL,
-  `stop_pos`        INT   NULL,
-  `sbjct_start_pos` INT   NULL,
-  `sbjct_stop_pos`  INT   NULL,
-  `e_value`         FLOAT NULL,
-  `score`           FLOAT NULL,
+CREATE TABLE IF NOT EXISTS `th6_blasted_oligos` (
+  `oligo_id` INT NULL,
+  `gene_id` VARCHAR(100) NULL,
+  `identity` FLOAT NULL,
+  `alignment_len` INT NULL,
+  `nr_mismatched` INT NULL,
+  `nr_gaps` INT NULL,
+  `start_pos` INT NULL,
+  `stop_pos` INT NULL,
+  `sbjct_start_pos` INT NULL,
+  `sbjct_stop_pos` INT NULL,
+  `e_value` FLOAT NULL,
+  `score` FLOAT NULL,
+  `id` INT NOT NULL AUTO_INCREMENT,
+
   PRIMARY KEY (`id`),
   INDEX `fk_th6_blasted_oligos_th6_oligos1_idx` (`oligo_id` ASC),
   CONSTRAINT `fk_th6_blasted_oligos_th6_oligos1`
-  FOREIGN KEY (`oligo_id`)
-  REFERENCES .`th6_oligos` (`id`)
+    FOREIGN KEY (`oligo_id`)
+    REFERENCES `th6_oligos` (`id`)
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
   ENGINE = MyISAM;

@@ -163,8 +163,8 @@ class Database:
                                                                                         probe.temp_melt,
                                                                                         probe.start_pos,
                                                                                         probe.stop_pos))
-            # Het pakken van de inserted primary key's kost veel tijd!
-            # probe.probe_id = self.conn.insert_id()
+            # Noodzakelijk voor fasta export!
+            probe.probe_id = self.conn.insert_id()
 
         self.cur.execute('INSERT INTO th6_gene_experiment_data ('
                          'gene_id, '
@@ -197,7 +197,7 @@ class Database:
 
     def set_valid_probes_from_blast(self):
 
-        self.cur.execute('SELECT oligo_id FROM th6_blasts '
+        self.cur.execute('SELECT oligo_id FROM th6_blasted_oligos '
                          'WHERE alignment_len = 20 GROUP BY oligo_id HAVING count(*) = 1')
 
         oligos = self.cur.fetchall()
