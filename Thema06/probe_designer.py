@@ -123,16 +123,18 @@ def main():
     args = get_args()
     # Set the settings for probe creation
 
-    print('+', '-'*74, '+')
-    print('|', 'Probe designer'.center(74), '|')
-    print('+', '-'*74, '+')
+    print('+', '-'*76, '+')
+    print('|', 'Probe designer'.center(76), '|')
+    print('+', '-'*76, '+')
 
     if os.path.exists(args.o):
-
         print('[WARNNG] Folder '+args.o+' exists or is invalid')
         warning = input('Do you want to continue? y/n: ')
         if warning.lower() == 'n':
             exit(0)
+
+    if not args.db:
+        print("[WARNING] No database connection specified. This may affect the id's in the probe fasta!")
 
     main_start_time = time.clock()
     handler(nr_nuc_mono_repeat=args.mr,
