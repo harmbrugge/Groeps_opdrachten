@@ -203,7 +203,6 @@ class Gene:
         self.time_hairpin = 0
         self.time_gc = 0
 
-
 class FastaWriter:
     """
     The class that handles the creation of the fasta files.
@@ -280,6 +279,7 @@ class FastaWriter:
         return [''.join(probe_list), filename]
 
     def write_probes_gondor(self, probe_list, file_count, output_dir=''):
+
         probe_count = len(probe_list)
         probes_per_file = int((probe_count / file_count))
 
@@ -305,28 +305,25 @@ class FastaWriter:
             i += 1
 
     @staticmethod
-    def write(data, output_dir='file/'):
+    def write(data, output_dir):
         """
         This method creates the gene fasta file
         :param data: A data representation of a .fasta file
         :param output_dir: The path of the output dir
         """
+
         if not os.path.exists(output_dir):
-            os.mkdir(output_dir)
+            os.makedirs(output_dir)
 
-        # The creation of the filename .
         filename = output_dir + data[1]
-        if os.path.exists(filename):
-            print('An exception ouccurd: File:', filename, 'exists already!')
-        else:
-            # Open the file.
-            file = open(filename, 'w')
+        # Open the file.
+        file = open(filename, 'w')
 
-            if type(data) == list:
-                file.write(data[0])
-            elif type(data) == str:
+        if type(data) == list:
+            file.write(data[0])
+        elif type(data) == str:
 
-                file.write(data[0])
-            file.close()
+            file.write(data[0])
+        file.close()
 
         return filename
