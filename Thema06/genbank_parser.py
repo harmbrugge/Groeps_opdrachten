@@ -42,7 +42,6 @@ class GenBank:
         It opens the genbank file for the current path + filename
         and sets the file_string for the current genbank file.
         """
-
         handle = open(self.file, 'r')
         var = handle.readlines()
         self.file_string = ''.join(var)
@@ -203,6 +202,7 @@ class Gene:
         self.time_hairpin = 0
         self.time_gc = 0
 
+
 class FastaWriter:
     """
     The class that handles the creation of the fasta files.
@@ -298,7 +298,21 @@ class FastaWriter:
             probes_in_current_file += 1
 
             if probes_in_current_file == probes_per_file:
-                self.write([''.join(seq_to_write), 'probes_' + str(file_number)], output_dir)
+
+                filename = 'probes_' + str(file_number)
+                if os.path.exists(output_dir+filename):
+                    duplicate_file_iter = 1
+
+                    while os.path.exists(output_dir+filename+'({0})'.format(str(duplicate_file_iter))):
+                        duplicate_file_iter += 1
+
+                    print('[WARNING] File: ',
+                          filename,
+                          ' Exists. Creating: ',
+                          filename, '({0})'.format(str(duplicate_file_iter)))
+                    filename += '({0})'.format(str(duplicate_file_iter))
+
+                self.write([''.join(seq_to_write), filename], output_dir)
                 probes_in_current_file = 0
                 seq_to_write = list()
                 file_number += 1
@@ -317,13 +331,16 @@ class FastaWriter:
 
         filename = output_dir + data[1]
         # Open the file.
-        file = open(filename, 'w')
+        if os.path.exists(filename):
+            raise OSError('[EXCEPTION] File '+filename+' exists!')
+        else:
+            file = open(filename, 'w')
 
-        if type(data) == list:
-            file.write(data[0])
-        elif type(data) == str:
+            if type(data) == list:
+                file.write(data[0])
+            elif type(data) == str:
 
-            file.write(data[0])
-        file.close()
+                file.write(data[0])
+            file.close()
 
         return filename

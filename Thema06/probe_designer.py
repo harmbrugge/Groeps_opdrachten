@@ -29,8 +29,6 @@ import argparse
 def handler(input_folder, output_folder, number_of_files, nr_nuc_mono_repeat, nr_nuc_di_repeat, probe_length,
             nucleotide_frame_skip, min_gc_percentage, inval_nuc_frame_skip, database_bool):
 
-
-
     prober_obj = prober.Prober(nr_nuc_di_repeat=nr_nuc_di_repeat,
                                nr_nuc_mono_repeat=nr_nuc_mono_repeat,
                                probe_length=probe_length,
@@ -49,7 +47,8 @@ def handler(input_folder, output_folder, number_of_files, nr_nuc_mono_repeat, nr
 
     for file in glob.glob(os.path.join(input_folder, '*.gbk')):
 
-        print('[file] number: ', file_iter, ' path: ',  file)
+        print('-'*80)
+        print('[file] Number: ', file_iter, '\n[path] ',  file)
 
         genbank = genbank_parser.GenBank(filename=file)
         chromosome = genbank.make_chromosome()
@@ -70,19 +69,23 @@ def handler(input_folder, output_folder, number_of_files, nr_nuc_mono_repeat, nr
                 database.set_probes(prober_obj, gene)
 
             gene_perc = (gene_count/gene_len) * 100
-            sys.stdout.write('\r[busy] {0}% done'.format(round(gene_perc, 3)))
+            sys.stdout.write('\r[busy] {0}% [{1}{2}]'.format(round(gene_perc),
+                                                             '='*(int(gene_perc/2.5)),
+                                                             ' '*(int(40-(gene_perc/2.5)))))
             sys.stdout.flush()
             gene_count += 1
 
-        print('\n[done] ', file)
+        print('\n[done]', file.split('/')[-1])
         file_iter += 1
 
     try:
+        print('-'*80)
         genbank_parser.FastaWriter().write_probes_gondor(probe_list,
                                                          number_of_files,
                                                          output_folder)
     except OSError as e:
-        print('henk')
+        print(e)
+        exit(-1)
 
     if database_bool:
         database.commit()
@@ -90,8 +93,14 @@ def handler(input_folder, output_folder, number_of_files, nr_nuc_mono_repeat, nr
         database.close_connection()
 
 
-def usage():
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+def get_args():
+
+    description_string = "Author's: Harm Brugge and Olivier Bakker\n"\
+                         "Description: This program creates probes from .gbk files."
+    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                     description=description_string)
+
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0')
     parser.add_argument('-i', help='input folder', type=str)
     parser.add_argument('-o', help='output folder', type=str)
     parser.add_argument('-oc', help='Number of output files', type=int, default=1)
@@ -105,14 +114,26 @@ def usage():
     args = parser.parse_args()
 
     if not args.i:
-        parser.error('No input folder defined. Define one with -i <path/to/folder>')
+        parser.error('[ERROR] No input folder defined. Define one with -i <path/to/folder>')
 
     return args
 
 
 def main():
-    args = usage()
+    args = get_args()
     # Set the settings for probe creation
+
+    print('+', '-'*74, '+')
+    print('|', 'Probe designer'.center(74), '|')
+    print('+', '-'*74, '+')
+
+    if os.path.exists(args.o):
+
+        print('[WARNNG] Folder '+args.o+' exists or is invalid')
+        warning = input('Do you want to continue? y/n: ')
+        if warning.lower() == 'n':
+            exit(0)
+
     main_start_time = time.clock()
     handler(nr_nuc_mono_repeat=args.mr,
             nr_nuc_di_repeat=args.dr,
@@ -124,9 +145,9 @@ def main():
             number_of_files=args.oc,
             database_bool=args.db,
             inval_nuc_frame_skip=args.fs)
+
+    print('-'*80)
     print('[Total elapsed] ', round((time.clock()-main_start_time), 3))
 
-
 if __name__ == '__main__':
-    # C:\"Program Files (x86)"\"Windows Resource Kits"\Tools\timeit C:\python34\python prober.py
     main()
