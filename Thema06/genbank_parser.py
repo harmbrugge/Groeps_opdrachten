@@ -308,8 +308,9 @@ class FastaWriter:
 
                     print('[WARNING] File: ',
                           filename,
-                          ' Exists. Creating: ',
-                          filename, '({0})'.format(str(duplicate_file_iter)))
+                          ' Exists.\n\t Created: ',
+                          filename, '({0}) instead'.format(str(duplicate_file_iter)))
+
                     filename += '({0})'.format(str(duplicate_file_iter))
 
                 self.write([''.join(seq_to_write), filename], output_dir)
@@ -331,15 +332,32 @@ class FastaWriter:
 
         filename = output_dir + data[1]
         # Open the file.
+
         if os.path.exists(filename):
-            raise OSError('[EXCEPTION] File '+filename+' exists!')
+            duplicate_file_iter = 1
+
+            while os.path.exists(filename+'({0})'.format(str(duplicate_file_iter))):
+                duplicate_file_iter += 1
+
+            print('[WARNING] File: ',
+                  filename,
+                  ' Exists.\n\t Created: ',
+                  filename, '({0}) instead'.format(str(duplicate_file_iter)))
+            filename += '({0})'.format(str(duplicate_file_iter))
+
+            file = open(filename, 'w')
+            if type(data) == list:
+                file.write(''.join(data[0]))
+            elif type(data) == str:
+                file.write(data[0])
+            file.close()
+
         else:
             file = open(filename, 'w')
 
             if type(data) == list:
-                file.write(data[0])
+                file.write(''.join(data[0]))
             elif type(data) == str:
-
                 file.write(data[0])
             file.close()
 

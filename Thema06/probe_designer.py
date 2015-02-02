@@ -48,7 +48,10 @@ def handler(input_folder, output_folder, number_of_files, nr_nuc_mono_repeat, nr
     for file in glob.glob(os.path.join(input_folder, '*.gbk')):
 
         print('-'*80)
-        print('[file] Number: ', file_iter, '\n[path] ',  file)
+        print('[file] Number: ',
+              file_iter, '[size]',
+              round((os.path.getsize(file)/1000000), 2),
+              'Mb\n[path] ',  file)
 
         genbank = genbank_parser.GenBank(filename=file)
         chromosome = genbank.make_chromosome()
@@ -149,7 +152,7 @@ def main():
             inval_nuc_frame_skip=args.fs)
 
     print('-'*80)
-    print('[Total elapsed] ', round((time.clock()-main_start_time), 3))
+    print('[Total time elapsed] ', round((time.clock()-main_start_time), 3))
 
 if __name__ == '__main__':
     main()

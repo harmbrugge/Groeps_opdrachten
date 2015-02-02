@@ -45,7 +45,7 @@ class Prober:
             if cur_g_count == 0 and cur_c_count == 0:
                 cur_gc_perc = 0
             else:
-                cur_gc_perc = (cur_c_count + cur_g_count) / self.probe_length * 100
+                cur_gc_perc = ((cur_c_count + cur_g_count) / self.probe_length) * 100
 
             if cur_gc_perc > self.min_gc_percentage:
                 gc_time_list.append(time.clock() - start_time)
